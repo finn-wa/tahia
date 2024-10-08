@@ -13,12 +13,12 @@ dependencies {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+    languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
 application {
-    mainClass = "org.example.App"
+    mainClass = "tahia.TahiaApp"
 }
 
 tasks.named<Test>("test") {

@@ -1,4 +1,4 @@
-# nahanaha - java formatter
+# tahia - java formatter
 
 A Java formatter without the JVM startup time
 
@@ -8,5 +8,5 @@ Designed for saving time in commit hooks or CI.
 
 ---
 
-**nahanaha** _(Maori)_ - to be well arranged, in good order, systematic, well-ordered, well-organised, ordered, tabulated, in a pattern. 
+**tahia** _(Maori)_ - to clear away, to sweep
 
