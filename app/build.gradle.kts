@@ -7,14 +7,10 @@ repositories {
 }
 
 dependencies {
+    implementation("org.eclipse.jdt:org.eclipse.jdt.core:3.39.0")
+
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-java {
-    toolchain {
-    languageVersion = JavaLanguageVersion.of(21)
-    }
 }
 
 application {
