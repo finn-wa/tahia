@@ -11,38 +11,16 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.text.edits.TextEdit;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * Implements an Eclipse Application for org.eclipse.jdt.core.JavaCodeFormatter.
- *
- * <p>
- * On MacOS, when invoked using the Eclipse executable, the "user.dir" property
- * is set to the folder
- * in which the eclipse.ini file is located. This makes it harder to use
- * relative paths to point to the
- * files to be formatted or the configuration file to use to set the code
- * formatter's options.
- * </p>
- *
- * <p>
- * There are a couple improvements that could be made: 1. Make a list of all the
- * files first so that a file does not get formatted twice. 2. Use a text based
- * progress monitor for output.
- * </p>
- *
- * @since 3.2
- * @noinstantiate This class is not intended to be instantiated by clients.
- * @noextend This class is not intended to be subclassed by clients.
- */
 public class TahiaCodeFormatter {
     /**
      * Deals with the messages in the properties file (cut n' pasted from a
@@ -202,13 +180,14 @@ public class TahiaCodeFormatter {
      * Format the given Java source file.
      */
     private void formatFile(File file, CodeFormatter codeFormatter) {
+        final Path path = file.toPath();
         IDocument doc = new Document();
         try {
             // read the file
             if (this.verbose) {
                 System.out.println(Messages.bind(Messages.CommandLineFormatting, file.getAbsolutePath()));
             }
-            String contents = new String(org.eclipse.jdt.internal.compiler.util.Util.getFileCharContent(file, null));
+            String contents = Files.readString(path);
             // format the file (the meat and potatoes)
             doc.set(contents);
             int kind = (file.getName().equals(IModule.MODULE_INFO_JAVA) ? CodeFormatter.K_MODULE_INFO
@@ -220,12 +199,7 @@ public class TahiaCodeFormatter {
                 System.err.println(Messages.bind(Messages.FormatProblem, file.getAbsolutePath()));
                 return;
             }
-
-            // write the file
-            try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
-                out.write(doc.get());
-                out.flush();
-            }
+            Files.writeString(path, doc.get());
         } catch (IOException e) {
             String errorMessage = Messages.bind(Messages.CaughtException, "IOException", e.getLocalizedMessage()); //$NON-NLS-1$
             Util.log(e, errorMessage);
