@@ -17,6 +17,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Properties;
 
@@ -191,7 +192,7 @@ public class TahiaCodeFormatter {
         for (File file : files) {
             if (file.isDirectory()) {
                 formatDirTree(file, codeFormatter);
-            } else if (Util.isJavaLikeFileName(file.getPath())) {
+            } else if (file.getName().endsWith(".java")) {
                 formatFile(file, codeFormatter);
             }
         }
@@ -309,10 +310,6 @@ public class TahiaCodeFormatter {
             }
         }
 
-        if (mode == CONFIG_MODE || this.options == null) {
-            displayHelp(Messages.bind(Messages.CommandLineErrorNoConfigFile));
-            return null;
-        }
         if (this.quiet && this.verbose) {
             displayHelp(
                     Messages.bind(
@@ -336,6 +333,9 @@ public class TahiaCodeFormatter {
      */
     private Properties readConfig(String filename) {
         File configFile = new File(filename);
+        if (!configFile.exists()) {
+            return new Properties();
+        }
         try (BufferedInputStream stream = new BufferedInputStream(new FileInputStream(configFile))) {
             final Properties formatterOptions = new Properties();
             formatterOptions.load(stream);
@@ -367,6 +367,7 @@ public class TahiaCodeFormatter {
      * Runs the Java code formatter application
      */
     public void start(String[] args) throws Exception {
+        final long start = Instant.now().toEpochMilli();
         File[] filesToFormat = processCommandLine(args);
 
         if (filesToFormat == null) {
@@ -393,5 +394,7 @@ public class TahiaCodeFormatter {
         if (!this.quiet) {
             System.out.println(Messages.bind(Messages.CommandLineDone));
         }
+        final long end = Instant.now().toEpochMilli();
+        System.out.println("Finished formatting in " + (end - start) + "ms");
     }
 }
