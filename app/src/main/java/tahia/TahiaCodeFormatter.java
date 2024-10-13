@@ -7,7 +7,6 @@ import org.eclipse.jdt.internal.core.util.Util;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.text.edits.TextEdit;
 
 import java.io.BufferedInputStream;
@@ -16,139 +15,25 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Properties;
 
 public class TahiaCodeFormatter {
-    /**
-     * Deals with the messages in the properties file (cut n' pasted from a
-     * generated class).
-     */
-    private final static class Messages extends NLS {
-        private static final String BUNDLE_NAME = "org.eclipse.jdt.core.formatter.messages";//$NON-NLS-1$
-
-        public static String CommandLineConfigFile;
-
-        public static String CommandLineDone;
-
-        public static String CommandLineErrorConfig;
-
-        public static String CommandLineErrorFileTryFullPath;
-
-        public static String CommandLineErrorFile;
-
-        public static String CommandLineErrorFileDir;
-
-        public static String CommandLineErrorQuietVerbose;
-
-        public static String CommandLineErrorNoConfigFile;
-
-        public static String CommandLineFormatting;
-
-        public static String CommandLineStart;
-
-        public static String CommandLineUsage;
-
-        public static String ConfigFileNotFoundErrorTryFullPath;
-
-        public static String ConfigFileReadingError;
-
-        public static String FormatProblem;
-
-        public static String CaughtException;
-
-        public static String ExceptionSkip;
-
-        static {
-            NLS.initializeMessages(BUNDLE_NAME, Messages.class);
-        }
-
-        /**
-         * Bind the given message's substitution locations with the given string
-         * values.
-         *
-         * @param message
-         *                the message to be manipulated
-         * @return the manipulated String
-         */
-        public static String bind(String message) {
-            return bind(message, null);
-        }
-
-        /**
-         * Bind the given message's substitution locations with the given string
-         * values.
-         *
-         * @param message
-         *                the message to be manipulated
-         * @param binding
-         *                the object to be inserted into the message
-         * @return the manipulated String
-         */
-        public static String bind(String message, Object binding) {
-            return bind(message, new Object[] {
-                    binding
-            });
-        }
-
-        /**
-         * Bind the given message's substitution locations with the given string
-         * values.
-         *
-         * @param message
-         *                 the message to be manipulated
-         * @param binding1
-         *                 An object to be inserted into the message
-         * @param binding2
-         *                 A second object to be inserted into the message
-         * @return the manipulated String
-         */
-        public static String bind(String message, Object binding1, Object binding2) {
-            return bind(message, new Object[] {
-                    binding1, binding2
-            });
-        }
-
-        /**
-         * Bind the given message's substitution locations with the given string
-         * values.
-         *
-         * @param message
-         *                 the message to be manipulated
-         * @param bindings
-         *                 An array of objects to be inserted into the message
-         * @return the manipulated String
-         */
-        public static String bind(String message, Object[] bindings) {
-            return MessageFormat.format(message, bindings);
-        }
-    }
-
     private static final String ARG_CONFIG = "-config"; //$NON-NLS-1$
-
     private static final String ARG_HELP = "-help"; //$NON-NLS-1$
-
     private static final String ARG_QUIET = "-quiet"; //$NON-NLS-1$
-
     private static final String ARG_VERBOSE = "-verbose"; //$NON-NLS-1$
-
     private String configName;
-
-    private Map options = null;
-
-    private static final String PDE_LAUNCH = "-pdelaunch"; //$NON-NLS-1$
-
+    private Map<Object, Object> options = null;
     private boolean quiet = false;
-
     private boolean verbose = false;
 
     /**
      * Display the command line usage message.
      */
     private void displayHelp() {
-        System.out.println(Messages.bind(Messages.CommandLineUsage));
+        System.out.println("glhf");
     }
 
     private void displayHelp(String message) {
@@ -185,7 +70,7 @@ public class TahiaCodeFormatter {
         try {
             // read the file
             if (this.verbose) {
-                System.out.println(Messages.bind(Messages.CommandLineFormatting, file.getAbsolutePath()));
+                System.out.println("Formatting: " + file.getAbsolutePath());
             }
             String contents = Files.readString(path);
             // format the file (the meat and potatoes)
@@ -196,19 +81,14 @@ public class TahiaCodeFormatter {
             if (edit != null) {
                 edit.apply(doc);
             } else {
-                System.err.println(Messages.bind(Messages.FormatProblem, file.getAbsolutePath()));
+                System.err.println("Failed to format: " + file.getAbsolutePath() + "\nSkipping file.");
                 return;
             }
             Files.writeString(path, doc.get());
-        } catch (IOException e) {
-            String errorMessage = Messages.bind(Messages.CaughtException, "IOException", e.getLocalizedMessage()); //$NON-NLS-1$
+        } catch (IOException | BadLocationException e) {
+            String errorMessage = "Caught " + e.getClass().getSimpleName() + ": " + e.getLocalizedMessage(); // $NON-NLS-1$
             Util.log(e, errorMessage);
-            System.err.println(Messages.bind(Messages.ExceptionSkip, errorMessage));
-        } catch (BadLocationException e) {
-            String errorMessage = Messages.bind(Messages.CaughtException, "BadLocationException", //$NON-NLS-1$
-                    e.getLocalizedMessage());
-            Util.log(e, errorMessage);
-            System.err.println(Messages.bind(Messages.ExceptionSkip, errorMessage));
+            System.err.println(errorMessage + "\nSkipping file.");
         }
     }
 
@@ -231,9 +111,6 @@ public class TahiaCodeFormatter {
 
             switch (mode) {
                 case DEFAULT_MODE:
-                    if (PDE_LAUNCH.equals(currentArg)) {
-                        continue loop;
-                    }
                     if (ARG_HELP.equals(currentArg)) {
                         displayHelp();
                         return null;
@@ -265,10 +142,9 @@ public class TahiaCodeFormatter {
                         } catch (IOException e2) {
                             canonicalPath = file.getAbsolutePath();
                         }
-                        String errorMsg = file.isAbsolute()
-                                ? Messages.bind(Messages.CommandLineErrorFile, canonicalPath)
-                                : Messages.bind(Messages.CommandLineErrorFileTryFullPath, canonicalPath);
-                        displayHelp(errorMsg);
+                        displayHelp(canonicalPath + "does not exist." + (file.isAbsolute()
+                                ? " Please specify only valid Java Source files."
+                                : " Please try specifying valid absolute path. "));
                         return null;
                     }
                     break;
@@ -276,23 +152,15 @@ public class TahiaCodeFormatter {
                     this.configName = currentArg;
                     this.options = readConfig(currentArg);
                     if (this.options == null) {
-                        displayHelp(Messages.bind(Messages.CommandLineErrorConfig, currentArg));
+                        displayHelp("A problem occurred while reading the config file " + currentArg);
                         return null;
                     }
                     mode = DEFAULT_MODE;
                     continue loop;
             }
         }
-
-        if (this.quiet && this.verbose) {
-            displayHelp(
-                    Messages.bind(
-                            Messages.CommandLineErrorQuietVerbose,
-                            new String[] { ARG_QUIET, ARG_VERBOSE }));
-            return null;
-        }
         if (fileCounter == 0) {
-            displayHelp(Messages.bind(Messages.CommandLineErrorFileDir));
+            displayHelp("You must specify at least one file or directory to format.");
             return null;
         }
         if (filesToFormat.length != fileCounter) {
@@ -323,13 +191,14 @@ public class TahiaCodeFormatter {
             }
             String errorMessage;
             if (!configFile.exists() && !configFile.isAbsolute()) {
-                errorMessage = Messages.bind(Messages.ConfigFileNotFoundErrorTryFullPath, new Object[] {
-                        canonicalPath,
-                        System.getProperty("user.dir") //$NON-NLS-1$
-                });
+                errorMessage = "Error reading configuration file (file path : %s, current user directory used to read the file: %s). Try specifying absolute path."
+                        .formatted(
+                                canonicalPath,
+                                System.getProperty("user.dir") //$NON-NLS-1$
+                        );
 
             } else {
-                errorMessage = Messages.bind(Messages.ConfigFileReadingError, canonicalPath);
+                errorMessage = "Error reading configuration file " + canonicalPath;
             }
             Util.log(e, errorMessage);
             System.err.println(errorMessage);
@@ -350,9 +219,9 @@ public class TahiaCodeFormatter {
 
         if (!this.quiet) {
             if (this.configName != null) {
-                System.out.println(Messages.bind(Messages.CommandLineConfigFile, this.configName));
+                System.out.println("Configuration Name: " + configName);
             }
-            System.out.println(Messages.bind(Messages.CommandLineStart));
+            System.out.println("Starting format job ...");
         }
 
         final CodeFormatter codeFormatter = ToolFactory.createCodeFormatter(this.options,
@@ -366,7 +235,7 @@ public class TahiaCodeFormatter {
             }
         }
         if (!this.quiet) {
-            System.out.println(Messages.bind(Messages.CommandLineDone));
+            System.out.println("Done.");
         }
         final long end = Instant.now().toEpochMilli();
         System.out.println("Finished formatting in " + (end - start) + "ms");
