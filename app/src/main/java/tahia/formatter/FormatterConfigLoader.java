@@ -18,17 +18,16 @@ public class FormatterConfigLoader {
     public static final String DEFAULT_SOURCE_VERSION = JavaCore.VERSION_21;
     private static final Logger LOGGER = Logger.getLogger(FormatterConfigLoader.class.getName());
 
-    public Map<Object, Object> getConfig(@Nullable String configFile)
-        throws FileNotFoundException, IOException {
+    public Map<Object, Object> getConfig(@Nullable String configFile) throws FileNotFoundException, IOException {
         if (configFile == null) {
-            return loadDefaultConfig();
+            return DefaultFormatterConfig.CONFIG;
             // return Map.of(
-            //     JavaCore.COMPILER_SOURCE,
-            //     DEFAULT_SOURCE_VERSION,
-            //     JavaCore.COMPILER_COMPLIANCE,
-            //     DEFAULT_SOURCE_VERSION,
-            //     JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM,
-            //     DEFAULT_SOURCE_VERSION
+            // JavaCore.COMPILER_SOURCE,
+            // DEFAULT_SOURCE_VERSION,
+            // JavaCore.COMPILER_COMPLIANCE,
+            // DEFAULT_SOURCE_VERSION,
+            // JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM,
+            // DEFAULT_SOURCE_VERSION
             // );
         }
         return readConfig(configFile);
@@ -60,7 +59,7 @@ public class FormatterConfigLoader {
             InputStream configStream = getClass().getClassLoader()
                 .getResourceAsStream("tahia/formatter/default-config.xml")
         ) {
-            options.load(configStream);
+            options.loadFromXML(configStream);
         }
         return options;
     }

@@ -21,7 +21,10 @@ public class TahiaApp {
         this.formatterConfigLoader = new FormatterConfigLoader();
     }
 
-    TahiaApp(FileWalker fileWalker, FormatterConfigLoader formatterConfigLoader) {
+    TahiaApp(
+        FileWalker fileWalker,
+        FormatterConfigLoader formatterConfigLoader
+    ) {
         this.fileWalker = fileWalker;
         this.formatterConfigLoader = formatterConfigLoader;
     }
@@ -31,21 +34,21 @@ public class TahiaApp {
         final var formatterConfig = formatterConfigLoader.getConfig(options.configFile());
         final var formatter = new TahiaCodeFormatter(formatterConfig);
 
-        fileWalker.findJavaFiles(options.targetFiles())
-                .forEach(formatter::formatFile);
+        fileWalker.findJavaFiles(options.targetFiles()).forEach(formatter::formatFile);
 
         final long end = Instant.now().toEpochMilli();
         System.out.println(
-                "Finished formatting " + formatter.getNumFilesFormatted()
-                        + " files in " + (end - start) + "ms");
+            "Finished formatting " + formatter.getNumFilesFormatted() + " files in " + (end - start) + "ms"
+        );
         final var skipped = formatter.getSkippedFiles();
         if (!skipped.isEmpty()) {
             int maxShown = 15;
-            System.err.println("Could not format " + skipped.size() + " files:\n"
-                    + skipped.stream()
-                            .limit(maxShown)
-                            .map(Path::toString)
-                            .collect(Collectors.joining("\n")));
+            System.err.println(
+                "Could not format " + skipped.size() + " files:\n" + skipped.stream()
+                    .limit(maxShown)
+                    .map(Path::toString)
+                    .collect(Collectors.joining("\n"))
+            );
             if (skipped.size() > maxShown) {
                 System.err.println("(and " + (skipped.size() - maxShown) + " more)");
             }

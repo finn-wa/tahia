@@ -9,7 +9,8 @@
         "name": "TahiaCli",
         "request": "launch",
         "mainClass": "tahia.TahiaCli",
-        "projectName": "app"
+        "projectName": "app",
+        "args": "./fake"
       }
     ]
 }

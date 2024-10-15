@@ -26,8 +26,7 @@ public class TahiaCodeFormatter {
     private List<Path> skippedFiles = new ArrayList<>();
 
     public TahiaCodeFormatter(Map<Object, Object> formatterConfig) {
-        this.formatter = ToolFactory.createCodeFormatter(formatterConfig,
-                ToolFactory.M_FORMAT_EXISTING);
+        this.formatter = ToolFactory.createCodeFormatter(formatterConfig, ToolFactory.M_FORMAT_EXISTING);
     }
 
     public TahiaCodeFormatter(CodeFormatter formatter) {
@@ -43,8 +42,8 @@ public class TahiaCodeFormatter {
             final String contents = Files.readString(path);
             doc.set(contents);
             final int kind = path.getFileName().toString().equals(IModule.MODULE_INFO_JAVA)
-                    ? CodeFormatter.K_MODULE_INFO | CodeFormatter.F_INCLUDE_COMMENTS
-                    : CodeFormatter.K_COMPILATION_UNIT | CodeFormatter.F_INCLUDE_COMMENTS;
+                ? CodeFormatter.K_MODULE_INFO | CodeFormatter.F_INCLUDE_COMMENTS
+                : CodeFormatter.K_COMPILATION_UNIT | CodeFormatter.F_INCLUDE_COMMENTS;
             TextEdit edit = formatter.format(kind, contents, 0, contents.length(), 0, null);
             if (edit != null) {
                 edit.apply(doc, TextEdit.NONE);
@@ -54,8 +53,10 @@ public class TahiaCodeFormatter {
             }
             LOGGER.warning("Unable to format " + path.toString() + " - skipping file");
         } catch (IOException | BadLocationException e) {
-            LOGGER.warning("Caught " + e.getClass().getSimpleName() +
-                    " while formatting " + path.toString() + ": " + e.getLocalizedMessage());
+            LOGGER.warning(
+                "Caught " + e.getClass().getSimpleName() + " while formatting " + path.toString() + ": " + e
+                    .getLocalizedMessage()
+            );
         }
         skippedFiles.add(path);
     }

@@ -66,8 +66,7 @@ public class TahiaCli {
         }
 
         final String configFilePath = cmd.getOptionValue("configFile");
-        final Level logLevel = Level.parse(
-                cmd.getOptionValue(OPT_LOG_LEVEL, Level.INFO.getName()));
+        final Level logLevel = Level.parse(cmd.getOptionValue(OPT_LOG_LEVEL, Level.INFO.getName()));
         // Get the remaining arguments (files and directories)
         final String[] targetFiles = cmd.getArgs();
         if (targetFiles.length == 0) {
@@ -77,11 +76,17 @@ public class TahiaCli {
     }
 
     private Options getCliOptions() {
-        return new Options().addOption(
-                new Option(OPT_CONFIG, "config",
-                        false, "Use the formatting style from the specified properties file."))
-                .addOption(new Option(OPT_LOG_LEVEL, "log-level", true, "Sets log level"))
-                .addOption(new Option(OPT_HELP, "help", false, "Displays help message"));
+        return new Options()
+            .addOption(
+                new Option(
+                    OPT_CONFIG,
+                    "config",
+                    false,
+                    "Use the formatting style from the specified properties file."
+                )
+            )
+            .addOption(new Option(OPT_LOG_LEVEL, "log-level", true, "Sets log level"))
+            .addOption(new Option(OPT_HELP, "help", false, "Displays help message"));
     }
 
     private void printHelp() {

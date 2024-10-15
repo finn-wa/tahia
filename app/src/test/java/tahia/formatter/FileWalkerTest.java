@@ -31,12 +31,13 @@ class FileWalkerTest {
         assertThat(dir).isNotEmptyDirectory();
         List<Path> files = walker.findJavaFiles(dir.toString()).toList();
         assertThat(files).containsExactlyInAnyOrder(
-                dir.resolve("nested1/nestception/DoubleNested.java"),
-                dir.resolve("nested1/nestception/DoubleNestedSibling.java"),
-                dir.resolve("nested1/Nested1.java"),
-                dir.resolve("nested2/nested3/DeepNested.java"),
-                dir.resolve("TopLevel1.java"),
-                dir.resolve("TopLevel2.java"));
+            dir.resolve("nested1/nestception/DoubleNested.java"),
+            dir.resolve("nested1/nestception/DoubleNestedSibling.java"),
+            dir.resolve("nested1/Nested1.java"),
+            dir.resolve("nested2/nested3/DeepNested.java"),
+            dir.resolve("TopLevel1.java"),
+            dir.resolve("TopLevel2.java")
+        );
     }
 
     @Test
@@ -49,23 +50,20 @@ class FileWalkerTest {
     @Test
     void testFindJavaFilesHandlesSingleDirectoryWithFiles() throws IOException {
         Path dir = tempDir.resolve("tahia/nested1/nestception");
-        assertThat(dir)
-                .isDirectoryContaining(fileWithName("DoubleNested.java"))
-                .isDirectoryContaining(fileWithName("DoubleNestedSibling.java"));
-        assertThat(walker.findJavaFiles(dir.toString()))
-                .containsExactlyInAnyOrder(
-                        dir.resolve("DoubleNested.java"),
-                        dir.resolve("DoubleNestedSibling.java"));
+        assertThat(dir).isDirectoryContaining(fileWithName("DoubleNested.java"))
+            .isDirectoryContaining(fileWithName("DoubleNestedSibling.java"));
+        assertThat(walker.findJavaFiles(dir.toString())).containsExactlyInAnyOrder(
+            dir.resolve("DoubleNested.java"),
+            dir.resolve("DoubleNestedSibling.java")
+        );
     }
 
     @Test
     void testFindJavaFilesIgnoresNonJavaFiles() throws IOException {
         Path dir = tempDir.resolve("tahia/nested2/nested3");
-        assertThat(dir)
-                .isDirectoryContaining(fileWithName("DeepNested.java"))
-                .isDirectoryContaining(fileWithName("msg.properties"));
-        assertThat(walker.findJavaFiles(dir.toString()))
-                .containsExactly(dir.resolve("DeepNested.java"));
+        assertThat(dir).isDirectoryContaining(fileWithName("DeepNested.java"))
+            .isDirectoryContaining(fileWithName("msg.properties"));
+        assertThat(walker.findJavaFiles(dir.toString())).containsExactly(dir.resolve("DeepNested.java"));
     }
 
     @Test
@@ -74,11 +72,11 @@ class FileWalkerTest {
         Path dir2 = tempDir.resolve("tahia/nested2/nested3");
         assertThat(dir1).exists();
         assertThat(dir2).exists();
-        assertThat(walker.findJavaFiles(dir1.toString(), dir2.toString()))
-                .containsExactlyInAnyOrder(
-                        dir1.resolve("DoubleNested.java"),
-                        dir1.resolve("DoubleNestedSibling.java"),
-                        dir2.resolve("DeepNested.java"));
+        assertThat(walker.findJavaFiles(dir1.toString(), dir2.toString())).containsExactlyInAnyOrder(
+            dir1.resolve("DoubleNested.java"),
+            dir1.resolve("DoubleNestedSibling.java"),
+            dir2.resolve("DeepNested.java")
+        );
     }
 
     @Test
@@ -89,12 +87,12 @@ class FileWalkerTest {
         assertThat(dir1).isNotEmptyDirectory();
         assertThat(dir2).isNotEmptyDirectory();
         assertThat(file).isRegularFile();
-        assertThat(walker.findJavaFiles(dir1.toString(), dir2.toString(), file.toString()))
-                .containsExactlyInAnyOrder(
-                        file,
-                        dir1.resolve("DoubleNested.java"),
-                        dir1.resolve("DoubleNestedSibling.java"),
-                        dir2.resolve("DeepNested.java"));
+        assertThat(walker.findJavaFiles(dir1.toString(), dir2.toString(), file.toString())).containsExactlyInAnyOrder(
+            file,
+            dir1.resolve("DoubleNested.java"),
+            dir1.resolve("DoubleNestedSibling.java"),
+            dir2.resolve("DeepNested.java")
+        );
     }
 
     @Test
@@ -104,7 +102,7 @@ class FileWalkerTest {
         assertThat(dir1).doesNotExist();
         assertThat(dir2).exists();
         assertThat(walker.findJavaFiles(dir1.toString(), dir2.toString()))
-                .containsExactly(dir2.resolve("DeepNested.java"));
+            .containsExactly(dir2.resolve("DeepNested.java"));
     }
 
     @Test
@@ -112,32 +110,29 @@ class FileWalkerTest {
         Path dir = tempDir.resolve("tahia");
         assertThat(dir).isNotEmptyDirectory();
         List<Path> files = walker.findJavaFiles(
-                dir.toString(),
-                dir.resolve("nested1").toString(),
-                dir.resolve("TopLevel1.java").toString()).toList();
+            dir.toString(),
+            dir.resolve("nested1").toString(),
+            dir.resolve("TopLevel1.java").toString()
+        ).toList();
         assertThat(files).containsExactlyInAnyOrder(
-                dir.resolve("nested1/nestception/DoubleNested.java"),
-                dir.resolve("nested1/nestception/DoubleNestedSibling.java"),
-                dir.resolve("nested1/Nested1.java"),
-                dir.resolve("nested2/nested3/DeepNested.java"),
-                dir.resolve("TopLevel1.java"),
-                dir.resolve("TopLevel2.java"));
+            dir.resolve("nested1/nestception/DoubleNested.java"),
+            dir.resolve("nested1/nestception/DoubleNestedSibling.java"),
+            dir.resolve("nested1/Nested1.java"),
+            dir.resolve("nested2/nested3/DeepNested.java"),
+            dir.resolve("TopLevel1.java"),
+            dir.resolve("TopLevel2.java")
+        );
     }
 
     /**
-     * Unzips folders and files to the temp directory. This is the layout of the
-     * files:
+     * Unzips folders and files to the temp directory. This is the layout of the files:
      * <ul>
      * dir.resolve("nested1/nestception/DoubleNested.java"),
      * dir.resolve("nested1/nestception/DoubleNestedSibling.java"),
-     * dir.resolve("nested1/Nested1.java"),
-     * dir.resolve("nested1/non-java-file.txt"),
-     * dir.resolve("nested2/nested3/emptydir"),
-     * dir.resolve("nested2/nested3/DeepNested.java"),
-     * dir.resolve("nested2/nested3/msg.properties"),
-     * dir.resolve("non-java-file.properties"),
-     * dir.resolve("TopLevel1.java"),
-     * dir.resolve("TopLevel2.java"),
+     * dir.resolve("nested1/Nested1.java"), dir.resolve("nested1/non-java-file.txt"),
+     * dir.resolve("nested2/nested3/emptydir"), dir.resolve("nested2/nested3/DeepNested.java"),
+     * dir.resolve("nested2/nested3/msg.properties"), dir.resolve("non-java-file.properties"),
+     * dir.resolve("TopLevel1.java"), dir.resolve("TopLevel2.java"),
      * </ul>
      */
     private void unzipFileTreeIntoTempDir() {

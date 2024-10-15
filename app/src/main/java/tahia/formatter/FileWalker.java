@@ -16,8 +16,7 @@ public class FileWalker {
     private static final String JAVA_EXTENSION = ".java";
 
     /**
-     * Recursively searches for all Java files in the specified directories or file
-     * paths.
+     * Recursively searches for all Java files in the specified directories or file paths.
      * 
      * @param filesAndDirs paths to files to include and directories to search
      * @return a stream of paths to Java files
@@ -27,9 +26,7 @@ public class FileWalker {
         // directories that have already been searched
         // https://docs.oracle.com/javase/tutorial/essential/io/examples/Find.java
         // could also implement ignore functionality
-        return Arrays.stream(filesAndDirs)
-                .flatMap(this::findJavaFilesInPath)
-                .distinct();
+        return Arrays.stream(filesAndDirs).flatMap(this::findJavaFilesInPath).distinct();
     }
 
     private Stream<Path> findJavaFilesInPath(String filePath) {
@@ -40,7 +37,7 @@ public class FileWalker {
         }
         try {
             return Files.walk(root, FileVisitOption.FOLLOW_LINKS)
-                    .filter(path -> Files.isRegularFile(path) && path.toString().endsWith(JAVA_EXTENSION));
+                .filter(path -> Files.isRegularFile(path) && path.toString().endsWith(JAVA_EXTENSION));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
