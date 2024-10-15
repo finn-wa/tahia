@@ -25,7 +25,7 @@ public class FileWalker {
     public Stream<Path> findJavaFiles(String... filesAndDirs) {
         // Could potentially be sped up by using FileVisitor to avoid entering
         // directories that have already been searched
-        // https://docs.oracle.com/javase/tutorial/displayCode.html?code=https://docs.oracle.com/javase/tutorial/essential/io/examples/Find.java
+        // https://docs.oracle.com/javase/tutorial/essential/io/examples/Find.java
         // could also implement ignore functionality
         return Arrays.stream(filesAndDirs)
                 .flatMap(this::findJavaFilesInPath)
