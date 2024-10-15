@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultFormatterConfig {
-    public static final Map<Object, Object> CONFIG;
+    public static final Map<String, String> CONFIG;
     static {
-        final Map<Object, Object> config = new HashMap<>();
+        final Map<String, String> config = new HashMap<>();
         config.put("org.eclipse.jdt.core.formatter.align_assignment_statements_on_columns", "false");
         config.put("org.eclipse.jdt.core.formatter.align_fields_grouping_blank_lines", "2147483647");
         config.put(

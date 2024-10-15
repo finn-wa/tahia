@@ -8,17 +8,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /** Loads the config for the Eclipse CodeFormatter. */
 public class FormatterConfigLoader {
     public static final String DEFAULT_SOURCE_VERSION = JavaCore.VERSION_21;
     private static final Logger LOGGER = Logger.getLogger(FormatterConfigLoader.class.getName());
 
-    public Map<Object, Object> getConfig(@Nullable String configFile) throws FileNotFoundException, IOException {
+    public Map<String, String> getConfig(@Nullable String configFile) throws FileNotFoundException, IOException {
         if (configFile == null) {
             return DefaultFormatterConfig.CONFIG;
             // return Map.of(
@@ -40,7 +40,7 @@ public class FormatterConfigLoader {
      * @throws IOException
      * @throws FileNotFoundException
      */
-    private Properties readConfig(String filename) throws FileNotFoundException, IOException {
+    private Map<String, String> readConfig(String filename) throws FileNotFoundException, IOException {
         LOGGER.fine("Loading formatter configuration");
         File configFile = new File(filename);
         if (!configFile.exists()) {
@@ -49,18 +49,10 @@ public class FormatterConfigLoader {
         try (BufferedInputStream stream = new BufferedInputStream(new FileInputStream(configFile))) {
             final Properties formatterOptions = new Properties();
             formatterOptions.load(stream);
-            return formatterOptions;
+            return formatterOptions.stringPropertyNames()
+                .stream()
+                .collect(Collectors.toMap(k -> k, formatterOptions::getProperty));
         }
     }
 
-    private Properties loadDefaultConfig() throws IOException {
-        final Properties options = new Properties();
-        try (
-            InputStream configStream = getClass().getClassLoader()
-                .getResourceAsStream("tahia/formatter/default-config.xml")
-        ) {
-            options.loadFromXML(configStream);
-        }
-        return options;
-    }
 }

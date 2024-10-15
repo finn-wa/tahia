@@ -1,8 +1,8 @@
 package tahia.formatter;
 
-import org.eclipse.jdt.core.ToolFactory;
 import org.eclipse.jdt.core.formatter.CodeFormatter;
 import org.eclipse.jdt.internal.compiler.env.IModule;
+import org.eclipse.jdt.internal.formatter.DefaultCodeFormatter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
@@ -25,8 +25,8 @@ public class TahiaCodeFormatter {
     private int numFilesFormatted = 0;
     private List<Path> skippedFiles = new ArrayList<>();
 
-    public TahiaCodeFormatter(Map<Object, Object> formatterConfig) {
-        this.formatter = ToolFactory.createCodeFormatter(formatterConfig, ToolFactory.M_FORMAT_EXISTING);
+    public TahiaCodeFormatter(Map<String, String> formatterConfig) {
+        this.formatter = new DefaultCodeFormatter(formatterConfig);
     }
 
     public TahiaCodeFormatter(CodeFormatter formatter) {

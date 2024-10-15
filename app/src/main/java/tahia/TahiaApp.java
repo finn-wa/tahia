@@ -32,8 +32,14 @@ public class TahiaApp {
     public void run(TahiaOptions options) throws IOException {
         final long start = Instant.now().toEpochMilli();
         final var formatterConfig = formatterConfigLoader.getConfig(options.configFile());
+        final long cfgLoaded = Instant.now().toEpochMilli();
+        System.out.println(
+            "Loaded config in " + (cfgLoaded - start) + "ms"
+        );
         final var formatter = new TahiaCodeFormatter(formatterConfig);
-
+        System.out.println(
+            "Created formatter in " + (Instant.now().toEpochMilli() - cfgLoaded) + "ms"
+        );
         fileWalker.findJavaFiles(options.targetFiles()).forEach(formatter::formatFile);
 
         final long end = Instant.now().toEpochMilli();
