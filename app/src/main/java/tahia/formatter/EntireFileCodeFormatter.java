@@ -49,7 +49,7 @@ import static org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameC
 import static org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameEOF;
 import static org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameNotAToken;
 
-public class ExperimentalCodeFormatter extends CodeFormatter {
+public class EntireFileCodeFormatter extends CodeFormatter {
 
     private static final int K_COMMENTS_MASK = K_SINGLE_LINE_COMMENT | K_MULTI_LINE_COMMENT | K_JAVA_DOC;
 
@@ -71,8 +71,7 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
         FORMAT_TO_PARSER_KIND.put(K_EXPRESSION, ASTParser.K_EXPRESSION);
     }
 
-    private DefaultCodeFormatterOptions originalOptions;
-    private DefaultCodeFormatterOptions workingOptions;
+    private final DefaultCodeFormatterOptions options;
 
     private Object oldCommentFormatOption;
     private String sourceLevel;
@@ -86,49 +85,14 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
     private final List<Token> tokens = new ArrayList<>();
     private TokenManager tokenManager;
 
-    public ExperimentalCodeFormatter() {
-        this(new DefaultCodeFormatterOptions(DefaultCodeFormatterConstants.getJavaConventionsSettings()), null);
+    public EntireFileCodeFormatter() {
+        this(DefaultCodeFormatterOptions.getDefaultSettings());
     }
 
-    public ExperimentalCodeFormatter(DefaultCodeFormatterOptions options) {
-        this(options, null);
-    }
-
-    public ExperimentalCodeFormatter(Map<String, String> options) {
-        this(null, options);
-    }
-
-    public ExperimentalCodeFormatter(
-        DefaultCodeFormatterOptions defaultCodeFormatterOptions,
-        Map<String, String> options
-    ) {
-        initOptions(defaultCodeFormatterOptions, options);
-    }
-
-    private void initOptions(DefaultCodeFormatterOptions defaultCodeFormatterOptions, Map<String, String> options) {
-        if (options != null) {
-            this.originalOptions = new DefaultCodeFormatterOptions(options);
-            this.workingOptions = new DefaultCodeFormatterOptions(options);
-            this.oldCommentFormatOption = getOldCommentFormatOption(options);
-            String compilerSource = options.get(CompilerOptions.OPTION_Source);
-            this.sourceLevel = compilerSource != null ? compilerSource : CompilerOptions.getLatestVersion();
-            this.previewEnabled = JavaCore.ENABLED.equals(options.get(JavaCore.COMPILER_PB_ENABLE_PREVIEW_FEATURES));
-        } else {
-            Map<String, String> settings = DefaultCodeFormatterConstants.getJavaConventionsSettings();
-            this.originalOptions = new DefaultCodeFormatterOptions(settings);
-            this.workingOptions = new DefaultCodeFormatterOptions(settings);
-            this.oldCommentFormatOption = DefaultCodeFormatterConstants.TRUE;
-            this.sourceLevel = CompilerOptions.getLatestVersion();
-        }
-        if (defaultCodeFormatterOptions != null) {
-            this.originalOptions.set(defaultCodeFormatterOptions.getMap());
-            this.workingOptions.set(defaultCodeFormatterOptions.getMap());
-        }
-    }
-
-    @Deprecated
-    private Object getOldCommentFormatOption(Map<String, String> options) {
-        return options.get(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT);
+    public EntireFileCodeFormatter(DefaultCodeFormatterOptions options) {
+        this.options = options;
+        this.sourceLevel = CompilerOptions.getLatestVersion();
+        this.previewEnabled = false;
     }
 
     @Override
@@ -138,14 +102,8 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
         }
 
         StringBuilder sb = new StringBuilder();
-        int indent = indentationLevel * this.originalOptions.indentation_size;
-        TextEditsBuilder.appendIndentationString(
-            sb,
-            this.originalOptions.tab_char,
-            this.originalOptions.tab_size,
-            indent,
-            0
-        );
+        int indent = indentationLevel * this.options.indentation_size;
+        TextEditsBuilder.appendIndentationString(sb, this.options.tab_char, this.options.tab_size, indent, 0);
         return sb.toString();
     }
 
@@ -170,7 +128,7 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
      */
     @Override
     public TextEdit format(int kind, String source, IRegion[] regions, int indentationLevel, String lineSeparator) {
-        assertRegionPreconditions(regions, source.length());
+        // assertRegionPreconditions(regions, source.length());
         this.formatRegions = Arrays.asList(regions);
 
         updateWorkingOptions(indentationLevel, lineSeparator, kind);
@@ -180,20 +138,45 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
 
         if (prepareFormattedCode(source, kind) == null)
             return this.tokens.isEmpty() ? new MultiTextEdit() : null;
+        // this.tokens.get(0).toString()
 
         MultiTextEdit result = new MultiTextEdit();
-        TextEditsBuilder resultBuilder = new TextEditsBuilder(
+        var resultBuilder = new ExperimentalTextEditsBuilder(
             this.sourceString,
             this.formatRegions,
             this.tokenManager,
-            this.workingOptions
+            this.options
         );
         this.tokenManager.traverse(0, resultBuilder);
-        for (TextEdit edit : resultBuilder.getEdits()) {
+        // this.tokenManager.traverse(0,)
+        final var out = resultBuilder.out.toString();
+        final var edits = resultBuilder.getEdits();
+        for (TextEdit edit : edits) {
             result.addChild(edit);
         }
         return result;
     }
+
+    // public String formatFileContents(String filename, String source) {
+    //     final int kind = filename.endsWith(IModule.MODULE_INFO_JAVA)
+    //         ? CodeFormatter.K_MODULE_INFO | CodeFormatter.F_INCLUDE_COMMENTS
+    //         : CodeFormatter.K_COMPILATION_UNIT | CodeFormatter.F_INCLUDE_COMMENTS;
+    //     this.formatRegions = List.of(new Region(0, source.length()));
+
+    //     updateWorkingOptions(0, null, kind);
+
+    //     if (prepareFormattedCode(source, kind) == null)
+    //         return source;
+
+    //     MultiTextEdit result = new MultiTextEdit();
+    //     TextEditsBuilder resultBuilder = new TextEditsBuilder(
+    //         this.sourceString,
+    //         this.formatRegions,
+    //         this.tokenManager,
+    //         this.options
+    //     );
+    //     this.tokenManager.traverse(0, resultBuilder);
+    // }
 
     private boolean init(String source, int kind) {
 
@@ -203,7 +186,7 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
         this.sourceString = source;
         this.sourceArray = source.toCharArray();
         this.tokens.clear();
-        this.tokenManager = new TokenManager(this.tokens, source, this.workingOptions);
+        this.tokenManager = new TokenManager(this.tokens, source, this.options);
 
         tokenizeSource(kind);
         return !this.tokens.isEmpty();
@@ -236,7 +219,8 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
     private void findHeader() {
         if (this.astRoot instanceof CompilationUnit unit) {
             List<TypeDeclaration> types = unit.types();
-            ASTNode firstElement = !types.isEmpty() ? types.get(0)
+            ASTNode firstElement = !types.isEmpty()
+                ? types.get(0)
                 : unit.getModule() != null ? unit.getModule()
                 : unit.getPackage();
             if (firstElement != null) {
@@ -253,10 +237,10 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
 
         CommentsPreparator commentsPreparator = new CommentsPreparator(
             this.tokenManager,
-            this.workingOptions,
+            this.options,
             this.sourceLevel
         );
-        CommentWrapExecutor commentWrapper = new CommentWrapExecutor(this.tokenManager, this.workingOptions);
+        CommentWrapExecutor commentWrapper = new CommentWrapExecutor(this.tokenManager, this.options);
         switch (kind) {
             case K_JAVA_DOC:
                 for (Token token : this.tokens) {
@@ -304,7 +288,7 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
             source,
             this.formatRegions,
             this.tokenManager,
-            this.workingOptions
+            this.options
         );
         resultBuilder.setAlignChar(DefaultCodeFormatterOptions.SPACE);
         for (Token token : this.tokens) {
@@ -353,7 +337,7 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
         Map<String, String> parserOptions = JavaCore.getOptions();
         parserOptions.put(CompilerOptions.OPTION_Source, this.sourceLevel);
         parserOptions.put(CompilerOptions.OPTION_DocCommentSupport, CompilerOptions.ENABLED);
-        parserOptions.put(CompilerOptions.OPTION_EnablePreviews, CompilerOptions.ENABLED); //TODO
+        parserOptions.put(CompilerOptions.OPTION_EnablePreviews, CompilerOptions.ENABLED); // TODO
         parserOptions.put(CompilerOptions.OPTION_ReportPreviewFeatures, CompilerOptions.IGNORE);
         parser.setCompilerOptions(parserOptions);
         return parser;
@@ -378,7 +362,7 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
         ) {
             @Override
             public char[] getContents() {
-                return ExperimentalCodeFormatter.this.sourceArray;
+                return EntireFileCodeFormatter.this.sourceArray;
             }
 
             @Override
@@ -426,22 +410,22 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
     }
 
     private void prepareSpaces() {
-        SpacePreparator spacePreparator = new SpacePreparator(this.tokenManager, this.workingOptions);
+        SpacePreparator spacePreparator = new SpacePreparator(this.tokenManager, this.options);
         this.astRoot.accept(spacePreparator);
         spacePreparator.finishUp();
     }
 
     private void prepareLineBreaks() {
-        LineBreaksPreparator breaksPreparator = new LineBreaksPreparator(this.tokenManager, this.workingOptions);
+        LineBreaksPreparator breaksPreparator = new LineBreaksPreparator(this.tokenManager, this.options);
         this.astRoot.accept(breaksPreparator);
         breaksPreparator.finishUp();
-        this.astRoot.accept(new OneLineEnforcer(this.tokenManager, this.workingOptions));
+        this.astRoot.accept(new OneLineEnforcer(this.tokenManager, this.options));
     }
 
     private void prepareComments() {
         CommentsPreparator commentsPreparator = new CommentsPreparator(
             this.tokenManager,
-            this.workingOptions,
+            this.options,
             this.sourceLevel
         );
         List<Comment> comments = ((CompilationUnit) this.astRoot.getRoot()).getCommentList();
@@ -452,7 +436,7 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
     }
 
     private void prepareWraps(int kind) {
-        WrapPreparator wrapPreparator = new WrapPreparator(this.tokenManager, this.workingOptions, kind);
+        WrapPreparator wrapPreparator = new WrapPreparator(this.tokenManager, this.options, kind);
         this.astRoot.accept(wrapPreparator);
         applyFormatOff();
         wrapPreparator.finishUp(this.astRoot, this.formatRegions);
@@ -537,20 +521,18 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
     }
 
     private void updateWorkingOptions(int indentationLevel, String lineSeparator, int kind) {
-        this.workingOptions.line_separator = lineSeparator != null
-            ? lineSeparator
-            : this.originalOptions.line_separator;
-        if (this.workingOptions.line_separator == null)
-            this.workingOptions.line_separator = Util.LINE_SEPARATOR;
+        this.options.line_separator = lineSeparator != null ? lineSeparator : this.options.line_separator;
+        if (this.options.line_separator == null)
+            this.options.line_separator = Util.LINE_SEPARATOR;
 
-        this.workingOptions.initial_indentation_level = indentationLevel;
+        this.options.initial_indentation_level = indentationLevel;
 
-        this.workingOptions.comment_format_javadoc_comment = this.originalOptions.comment_format_javadoc_comment &&
-                                                             canFormatComment(kind, K_JAVA_DOC);
-        this.workingOptions.comment_format_block_comment = this.originalOptions.comment_format_block_comment &&
-                                                           canFormatComment(kind, K_MULTI_LINE_COMMENT);
-        this.workingOptions.comment_format_line_comment = this.originalOptions.comment_format_line_comment &&
-                                                          canFormatComment(kind, K_SINGLE_LINE_COMMENT);
+        this.options.comment_format_javadoc_comment = this.options.comment_format_javadoc_comment &&
+                                                      canFormatComment(kind, K_JAVA_DOC);
+        this.options.comment_format_block_comment = this.options.comment_format_block_comment &&
+                                                    canFormatComment(kind, K_MULTI_LINE_COMMENT);
+        this.options.comment_format_line_comment = this.options.comment_format_line_comment &&
+                                                   canFormatComment(kind, K_SINGLE_LINE_COMMENT);
     }
 
     private boolean canFormatComment(int kind, int commentKind) {
@@ -567,6 +549,6 @@ public class ExperimentalCodeFormatter extends CodeFormatter {
 
     @Override
     public void setOptions(Map<String, String> options) {
-        initOptions(null, options);
+        // Options are static
     }
 }

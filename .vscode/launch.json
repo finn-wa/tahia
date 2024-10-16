@@ -10,7 +10,7 @@
         "request": "launch",
         "mainClass": "tahia.TahiaCli",
         "projectName": "app",
-        "args": "./fake"
+        "args": "./"
       }
     ]
 }
