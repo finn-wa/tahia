@@ -21,14 +21,6 @@ public class FormatterConfigLoader {
     public Map<String, String> getConfig(@Nullable String configFile) throws FileNotFoundException, IOException {
         if (configFile == null) {
             return DefaultFormatterConfig.CONFIG;
-            // return Map.of(
-            // JavaCore.COMPILER_SOURCE,
-            // DEFAULT_SOURCE_VERSION,
-            // JavaCore.COMPILER_COMPLIANCE,
-            // DEFAULT_SOURCE_VERSION,
-            // JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM,
-            // DEFAULT_SOURCE_VERSION
-            // );
         }
         return readConfig(configFile);
     }
