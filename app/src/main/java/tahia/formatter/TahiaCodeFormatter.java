@@ -2,7 +2,7 @@ package tahia.formatter;
 
 import org.eclipse.jdt.core.formatter.CodeFormatter;
 import org.eclipse.jdt.internal.compiler.env.IModule;
-import org.eclipse.jdt.internal.formatter.DefaultCodeFormatter;
+import org.eclipse.jdt.internal.formatter.DefaultCodeFormatterOptions;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
@@ -17,19 +17,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-/** Formats files and tracks stats. Wraps the Eclipse JDT CodeFormatter. */
+/** Formats files and tracks stats */
 public class TahiaCodeFormatter {
     private static final Logger LOGGER = Logger.getLogger(TahiaCodeFormatter.class.getName());
 
-    private final CodeFormatter formatter;
+    private final WorkingCodeFormatter formatter;
     private int numFilesFormatted = 0;
     private List<Path> skippedFiles = new ArrayList<>();
 
     public TahiaCodeFormatter(Map<String, String> formatterConfig) {
-        this.formatter = new DefaultCodeFormatter(formatterConfig);
+        final var options = new DefaultCodeFormatterOptions(formatterConfig);
+        this.formatter = new WorkingCodeFormatter(options);
     }
 
-    public TahiaCodeFormatter(CodeFormatter formatter) {
+    public TahiaCodeFormatter(WorkingCodeFormatter formatter) {
         this.formatter = formatter;
     }
 
@@ -60,6 +61,30 @@ public class TahiaCodeFormatter {
         }
         skippedFiles.add(path);
     }
+
+    // /**
+    //  * Format the given Java source file.
+    //  */
+    // public void formatFile(Path path) {
+    //     try {
+    //         final String contents = Files.readString(path);
+    //         final String formatted = path.getFileName().toString().equals(IModule.MODULE_INFO_JAVA)
+    //             ? formatter.formatModuleInfo(contents)
+    //             : formatter.format(contents);
+    //         if (formatted != null) {
+    //             Files.writeString(path, formatted);
+    //             numFilesFormatted++;
+    //             return;
+    //         }
+    //         LOGGER.warning("Unable to format " + path.toString() + " - skipping file");
+    //     } catch (IOException e) {
+    //         LOGGER.warning(
+    //             "Caught " + e.getClass().getSimpleName() + " while formatting " + path.toString() + ": " + e
+    //                 .getLocalizedMessage()
+    //         );
+    //     }
+    //     skippedFiles.add(path);
+    // }
 
     public int getNumFilesFormatted() {
         return numFilesFormatted;
