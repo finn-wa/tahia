@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import static org.eclipse.jdt.core.formatter.CodeFormatter.K_COMPILATION_UNIT;
+
 /** Formats files and tracks stats */
 public class TahiaCodeFormatter {
     private static final Logger LOGGER = Logger.getLogger(TahiaCodeFormatter.class.getName());
@@ -37,7 +39,7 @@ public class TahiaCodeFormatter {
     /**
      * Format the given Java source file.
      */
-    public void formatFile(Path path) {
+    public void _formatFile(Path path) {
         final IDocument doc = new Document();
         try {
             final String contents = Files.readString(path);
@@ -62,29 +64,30 @@ public class TahiaCodeFormatter {
         skippedFiles.add(path);
     }
 
-    // /**
-    //  * Format the given Java source file.
-    //  */
-    // public void formatFile(Path path) {
-    //     try {
-    //         final String contents = Files.readString(path);
-    //         final String formatted = path.getFileName().toString().equals(IModule.MODULE_INFO_JAVA)
-    //             ? formatter.formatModuleInfo(contents)
-    //             : formatter.format(contents);
-    //         if (formatted != null) {
-    //             Files.writeString(path, formatted);
-    //             numFilesFormatted++;
-    //             return;
-    //         }
-    //         LOGGER.warning("Unable to format " + path.toString() + " - skipping file");
-    //     } catch (IOException e) {
-    //         LOGGER.warning(
-    //             "Caught " + e.getClass().getSimpleName() + " while formatting " + path.toString() + ": " + e
-    //                 .getLocalizedMessage()
-    //         );
-    //     }
-    //     skippedFiles.add(path);
-    // }
+    /**
+     * Format the given Java source file.
+     */
+    public void formatFile(Path path) {
+        try {
+            final String contents = Files.readString(path);
+            // final String formatted = path.getFileName().toString().equals(IModule.MODULE_INFO_JAVA)
+            // ? formatter.formatModuleInfo(contents)
+            // : formatter.format(contents);
+            final String formatted = formatter.format(contents, K_COMPILATION_UNIT);
+            if (formatted != null) {
+                Files.writeString(path, formatted);
+                numFilesFormatted++;
+                return;
+            }
+            LOGGER.warning("Unable to format " + path.toString() + " - skipping file");
+        } catch (IOException e) {
+            LOGGER.warning(
+                "Caught " + e.getClass().getSimpleName() + " while formatting " + path.toString() + ": " + e
+                    .getLocalizedMessage()
+            );
+        }
+        skippedFiles.add(path);
+    }
 
     public int getNumFilesFormatted() {
         return numFilesFormatted;

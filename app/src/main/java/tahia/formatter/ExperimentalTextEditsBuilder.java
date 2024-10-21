@@ -9,8 +9,6 @@ import org.eclipse.jdt.internal.formatter.TokenManager;
 import org.eclipse.jdt.internal.formatter.TokenTraverser;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
-import org.eclipse.text.edits.ReplaceEdit;
-import org.eclipse.text.edits.TextEdit;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,10 +32,9 @@ public class ExperimentalTextEditsBuilder extends TokenTraverser {
     private TokenManager tm;
     private final DefaultCodeFormatterOptions options;
     final StringBuilder buffer;
-    final StringBuilder out = new StringBuilder();
 
     private final List<Token> stringLiteralsInLine = new ArrayList<>();
-    private final List<TextEdit> edits = new ArrayList<>();
+    private final List<SimpleEdit> edits = new ArrayList<>();
 
     private final List<IRegion> regions;
     private int currentRegion = 0;
@@ -47,6 +44,16 @@ public class ExperimentalTextEditsBuilder extends TokenTraverser {
     private int alignChar;
     private int sourceLimit;
     private int parentTokenIndex;
+
+    public record SimpleEdit(
+        int editStart,
+        int editEnd,
+        String text
+    ) {
+        int getLength() {
+            return editEnd - editStart;
+        }
+    }
 
     public ExperimentalTextEditsBuilder(
         String source,
@@ -348,7 +355,6 @@ public class ExperimentalTextEditsBuilder extends TokenTraverser {
 
     private void flushBuffer(int currentPosition) {
         String buffered = this.buffer.toString();
-        out.append(buffered);
         boolean sourceMatch = this.source.startsWith(buffered, this.counter) &&
                               this.counter + buffered.length() == currentPosition;
         while (!sourceMatch && this.currentRegion < this.regions.size()) {
@@ -373,9 +379,9 @@ public class ExperimentalTextEditsBuilder extends TokenTraverser {
             int bestSplit = 0;
             int bestSplitScore = Integer.MAX_VALUE;
             for (int i = 0; i < buffered.length(); i++) {
-                ReplaceEdit edit1 = getReplaceEdit(this.counter, regionEnd, buffered.substring(0, i), region);
-                ReplaceEdit edit2 = getReplaceEdit(regionEnd, currentPosition, buffered.substring(i), nextRegion);
-                int score = edit1.getLength() + edit1.getText().length() + edit2.getLength() + edit2.getText().length();
+                SimpleEdit edit1 = getReplaceEdit(this.counter, regionEnd, buffered.substring(0, i), region);
+                SimpleEdit edit2 = getReplaceEdit(regionEnd, currentPosition, buffered.substring(i), nextRegion);
+                int score = edit1.getLength() + edit1.text().length() + edit2.getLength() + edit2.text().length();
                 if (score < bestSplitScore) {
                     bestSplit = i;
                     bestSplitScore = score;
@@ -389,7 +395,7 @@ public class ExperimentalTextEditsBuilder extends TokenTraverser {
         this.counter = currentPosition;
     }
 
-    private ReplaceEdit getReplaceEdit(int editStart, int editEnd, String text, IRegion region) {
+    private SimpleEdit getReplaceEdit(int editStart, int editEnd, String text, IRegion region) {
         int regionEnd = region.getOffset() + region.getLength();
         if (editStart < region.getOffset() && regionEnd < editEnd) {
             int breaksInReplacement = this.tm.countLineBreaksBetween(text, 0, text.length());
@@ -415,7 +421,7 @@ public class ExperimentalTextEditsBuilder extends TokenTraverser {
             text = adaptReplaceText(text, breaksToPreserve, true, regionEnd);
             editEnd = regionEnd;
         }
-        return new ReplaceEdit(editStart, editEnd - editStart, text);
+        return new SimpleEdit(editStart, editEnd, text);
     }
 
     private boolean isOnlyWhitespace(String text) {
@@ -561,7 +567,7 @@ public class ExperimentalTextEditsBuilder extends TokenTraverser {
         }
     }
 
-    public List<TextEdit> getEdits() {
+    public List<SimpleEdit> getEdits() {
         return this.edits;
     }
 

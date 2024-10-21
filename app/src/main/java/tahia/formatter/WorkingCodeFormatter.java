@@ -24,6 +24,7 @@ import org.eclipse.jdt.internal.formatter.DefaultCodeFormatterOptions;
 import org.eclipse.jdt.internal.formatter.LineBreaksPreparator;
 import org.eclipse.jdt.internal.formatter.OneLineEnforcer;
 import org.eclipse.jdt.internal.formatter.SpacePreparator;
+import org.eclipse.jdt.internal.formatter.TextEditsBuilder;
 import org.eclipse.jdt.internal.formatter.Token;
 import org.eclipse.jdt.internal.formatter.TokenManager;
 import org.eclipse.jdt.internal.formatter.linewrap.WrapPreparator;
@@ -38,30 +39,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.eclipse.jdt.core.formatter.CodeFormatter.K_CLASS_BODY_DECLARATIONS;
 import static org.eclipse.jdt.core.formatter.CodeFormatter.K_COMPILATION_UNIT;
-import static org.eclipse.jdt.core.formatter.CodeFormatter.K_EXPRESSION;
-import static org.eclipse.jdt.core.formatter.CodeFormatter.K_JAVA_DOC;
 import static org.eclipse.jdt.core.formatter.CodeFormatter.K_MODULE_INFO;
-import static org.eclipse.jdt.core.formatter.CodeFormatter.K_MULTI_LINE_COMMENT;
-import static org.eclipse.jdt.core.formatter.CodeFormatter.K_SINGLE_LINE_COMMENT;
-import static org.eclipse.jdt.core.formatter.CodeFormatter.K_STATEMENTS;
-import static org.eclipse.jdt.core.formatter.CodeFormatter.K_UNKNOWN;
 import static org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameEOF;
 import static org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameNotAToken;
 
 public class WorkingCodeFormatter {
-
-    private static final int K_COMMENTS_MASK = K_SINGLE_LINE_COMMENT | K_MULTI_LINE_COMMENT | K_JAVA_DOC;
-
-    // Mask for code formatter kinds
-    private static final int K_MASK = K_UNKNOWN |
-        K_EXPRESSION |
-        K_STATEMENTS |
-        K_CLASS_BODY_DECLARATIONS |
-        K_COMPILATION_UNIT |
-        K_MODULE_INFO |
-        K_COMMENTS_MASK;
 
     private final DefaultCodeFormatterOptions options;
 
@@ -114,7 +97,7 @@ public class WorkingCodeFormatter {
         // this.tokens.get(0).toString()
 
         MultiTextEdit result = new MultiTextEdit();
-        var resultBuilder = new ExperimentalTextEditsBuilder(
+        var resultBuilder = new TextEditsBuilder(
             this.sourceString,
             this.formatRegions,
             this.tokenManager,
@@ -127,6 +110,41 @@ public class WorkingCodeFormatter {
             result.addChild(edit);
         }
         return result;
+    }
+
+    public String format(String source, int kind) {
+        this.formatRegions = Arrays.asList(new IRegion[] { new Region(0, source.length()) });
+
+        if (prepareFormattedCode(source, kind) == null)
+            return this.tokens.isEmpty() ? source : null;
+        // final TokenManager tokenManager = prepareFormattedCode(source, kind);
+        // if (tokenManager == null) {
+        // return null;
+        // }
+        var resultBuilder = new ExperimentalTextEditsBuilder(
+            source,
+            this.formatRegions,
+            tokenManager,
+            this.options
+        );
+        tokenManager.traverse(0, resultBuilder);
+
+        final var out = new StringBuilder(source);
+        for (var edit : resultBuilder.getEdits()) {
+            out.replace(edit.editStart(), edit.editEnd(), edit.text());
+        }
+        // for (TextEdit edit : resultBuilder.getEdits()) {
+        //     if (edit instanceof ReplaceEdit replaceEdit) {
+        //         out.replace(
+        //             replaceEdit.getOffset(),
+        //             replaceEdit.getOffset() + replaceEdit.getLength(),
+        //             replaceEdit.getText()
+        //         );
+        //     } else {
+        //         throw new IllegalStateException("Edit is not a ReplaceEdit! " + edit.toString());
+        //     }
+        // }
+        return out.toString();
     }
 
     List<Token> prepareFormattedCode(String source) {
