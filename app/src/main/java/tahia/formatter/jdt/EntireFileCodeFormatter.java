@@ -1,4 +1,4 @@
-package tahia.formatter;
+package tahia.formatter.jdt;
 
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IModuleDescription;
@@ -83,7 +83,7 @@ public class EntireFileCodeFormatter {
 
     public String format(String source, FileType fileType) {
         final var edit = buildFormatEdit(source, fileType);
-        final var doc = new SimpleDocument(source);
+        final var doc = new EditableDocumentStub(source);
         try {
             edit.apply(doc, TextEdit.NONE);
         } catch (MalformedTreeException | BadLocationException e) {

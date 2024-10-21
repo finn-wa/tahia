@@ -1,7 +1,8 @@
 package tahia.formatter;
 
 import org.eclipse.jdt.internal.formatter.DefaultCodeFormatterOptions;
-import tahia.formatter.EntireFileCodeFormatter.FileType;
+import tahia.formatter.jdt.EntireFileCodeFormatter;
+import tahia.formatter.jdt.EntireFileCodeFormatter.FileType;
 
 import java.io.IOException;
 import java.nio.file.Files;

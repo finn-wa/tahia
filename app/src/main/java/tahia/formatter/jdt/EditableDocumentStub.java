@@ -1,16 +1,16 @@
-package tahia.formatter;
+package tahia.formatter.jdt;
 
 import org.eclipse.jface.text.*;
 
-public class SimpleDocument implements IDocument {
+class EditableDocumentStub implements IDocument {
 
     final StringBuilder source;
 
-    public SimpleDocument() {
+    public EditableDocumentStub() {
         this.source = new StringBuilder();
     }
 
-    public SimpleDocument(String source) {
+    public EditableDocumentStub(String source) {
         this.source = new StringBuilder(source);
     }
 

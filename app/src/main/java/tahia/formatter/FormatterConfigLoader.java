@@ -2,6 +2,7 @@ package tahia.formatter;
 
 import jakarta.annotation.Nullable;
 import org.eclipse.jdt.core.JavaCore;
+import tahia.formatter.jdt.DefaultFormatterConfig;
 
 import java.io.BufferedInputStream;
 import java.io.File;
