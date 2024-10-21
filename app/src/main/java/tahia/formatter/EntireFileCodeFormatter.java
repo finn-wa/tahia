@@ -27,26 +27,28 @@ import org.eclipse.jdt.internal.formatter.TextEditsBuilder;
 import org.eclipse.jdt.internal.formatter.Token;
 import org.eclipse.jdt.internal.formatter.TokenManager;
 import org.eclipse.jdt.internal.formatter.linewrap.WrapPreparator;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
-import org.eclipse.text.edits.ReplaceEdit;
+import org.eclipse.text.edits.MalformedTreeException;
+import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.TextEdit;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import static org.eclipse.jdt.core.formatter.CodeFormatter.K_COMPILATION_UNIT;
-import static org.eclipse.jdt.core.formatter.CodeFormatter.K_MODULE_INFO;
 import static org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameEOF;
 import static org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameNotAToken;
 
 public class EntireFileCodeFormatter {
-
+    public final boolean previewEnabled;
+    private static final Logger LOGGER = Logger.getLogger(EntireFileCodeFormatter.class.getName());
     private final DefaultCodeFormatterOptions options;
     private final String sourceLevel;
-    public final boolean previewEnabled;
 
     public EntireFileCodeFormatter() {
         this(DefaultCodeFormatterOptions.getDefaultSettings());
@@ -56,32 +58,70 @@ public class EntireFileCodeFormatter {
         this.options = options;
         this.sourceLevel = CompilerOptions.getLatestVersion();
         this.previewEnabled = false;
-        updateWorkingOptions();
-    }
-
-    private void updateWorkingOptions() {
-        if (this.options.line_separator == null)
+        if (this.options.line_separator == null) {
             this.options.line_separator = Util.LINE_SEPARATOR;
-
+        }
         this.options.initial_indentation_level = 0;
     }
 
-    public String formatModuleInfo(String source) {
-        return format(source, CodeFormatter.K_MODULE_INFO | CodeFormatter.F_INCLUDE_COMMENTS);
+    public enum FileType {
+        CODE(CodeFormatter.K_COMPILATION_UNIT | CodeFormatter.F_INCLUDE_COMMENTS),
+        MODULE_INFO(CodeFormatter.K_MODULE_INFO | CodeFormatter.F_INCLUDE_COMMENTS);
+
+        final int kind;
+
+        private FileType(int kind) {
+            this.kind = kind;
+        }
+
+        public static FileType fromFileName(String name) {
+            return name.endsWith("module-info.java")
+                ? FileType.MODULE_INFO
+                : FileType.CODE;
+        }
     }
 
-    public String format(String source) {
-        return format(source, CodeFormatter.K_COMPILATION_UNIT | CodeFormatter.F_INCLUDE_COMMENTS);
+    public String format(String source, FileType fileType) {
+        final var edit = buildFormatEdit(source, fileType);
+        final var doc = new SimpleDocument(source);
+        try {
+            edit.apply(doc, TextEdit.NONE);
+        } catch (MalformedTreeException | BadLocationException e) {
+            LOGGER.fine(
+                () -> "Error thrown while formatting: %s - %s".formatted(e.getClass().getSimpleName(), e.getMessage())
+            );
+            return null;
+        }
+        return doc.get();
     }
 
-    private TokenManager prepareFormattedCode(String source, int kind) {
+    private MultiTextEdit buildFormatEdit(String source, FileType fileType) {
+        final TokenManager tokenManager = prepareFormattedCode(source, fileType);
+        if (tokenManager == null) {
+            return null;
+        }
+        final var resultBuilder = new TextEditsBuilder(
+            source,
+            List.of(new Region(0, source.length())),
+            tokenManager,
+            this.options
+        );
+        tokenManager.traverse(0, resultBuilder);
+        final var multiEdit = new MultiTextEdit();
+        for (TextEdit edit : resultBuilder.getEdits()) {
+            multiEdit.addChild(edit);
+        }
+        return multiEdit;
+    }
+
+    private TokenManager prepareFormattedCode(String source, FileType fileType) {
         final char[] sourceArray = source.toCharArray();
-        final List<Token> tokens = tokenizeSource(kind, sourceArray);
+        final List<Token> tokens = tokenizeSource(sourceArray, fileType);
         if (tokens.isEmpty()) {
             return null;
         }
         final var tokenManager = new TokenManager(tokens, source, this.options);
-        final var astRoot = createParser(kind, sourceArray).createAST(null);
+        final var astRoot = createParser(sourceArray, fileType).createAST(null);
         if (astRoot == null)
             return null;
 
@@ -89,55 +129,12 @@ public class EntireFileCodeFormatter {
         prepareSpaces(tokenManager, astRoot);
         prepareLineBreaks(tokenManager, astRoot);
         prepareComments(tokenManager, astRoot);
-        prepareWraps(tokenManager, astRoot, kind, source.length());
+        prepareWraps(tokenManager, astRoot, fileType, source.length());
 
         return tokenManager;
     }
 
-    private void setHeader(TokenManager tokenManager, ASTNode astRoot) {
-        if (astRoot instanceof CompilationUnit unit) {
-            List<TypeDeclaration> types = unit.types();
-            ASTNode firstElement = !types.isEmpty()
-                ? types.get(0)
-                : unit.getModule() != null ? unit.getModule()
-                : unit.getPackage();
-            if (firstElement != null) {
-                int headerEndIndex = tokenManager.firstIndexIn(firstElement, -1);
-                tokenManager.setHeaderEndIndex(headerEndIndex);
-            }
-        }
-    }
-
-    private String format(String source, int kind) {
-        final TokenManager tokenManager = prepareFormattedCode(source, kind);
-        if (tokenManager == null) {
-            return null;
-        }
-        final IRegion region = new Region(0, source.length());
-        var resultBuilder = new TextEditsBuilder(
-            source,
-            List.of(region),
-            tokenManager,
-            this.options
-        );
-        tokenManager.traverse(0, resultBuilder);
-
-        final var out = new StringBuilder(source);
-        for (TextEdit edit : resultBuilder.getEdits()) {
-            if (edit instanceof ReplaceEdit replaceEdit) {
-                out.replace(
-                    replaceEdit.getOffset(),
-                    replaceEdit.getOffset() + replaceEdit.getLength(),
-                    replaceEdit.getText()
-                );
-            } else {
-                throw new IllegalStateException("Edit is not a ReplaceEdit! " + edit.toString());
-            }
-        }
-        return out.toString();
-    }
-
-    private List<Token> tokenizeSource(int kind, char[] sourceArray) {
+    private List<Token> tokenizeSource(char[] sourceArray, FileType fileType) {
         final List<Token> tokens = new ArrayList<>();
         Scanner scanner = new Scanner(
             true,
@@ -150,7 +147,7 @@ public class EntireFileCodeFormatter {
             this.previewEnabled
         );
         scanner.setSource(sourceArray);
-        scanner.fakeInModule = (kind & K_MODULE_INFO) != 0;
+        scanner.fakeInModule = fileType == FileType.MODULE_INFO;
         while (true) {
             try {
                 int tokenType = scanner.getNextToken();
@@ -166,10 +163,10 @@ public class EntireFileCodeFormatter {
         return tokens;
     }
 
-    private ASTParser createParser(int kind, char[] sourceArray) {
+    private ASTParser createParser(char[] sourceArray, FileType fileType) {
         ASTParser parser = ASTParser.newParser(AST.JLS22);
 
-        if (kind == K_MODULE_INFO) {
+        if (fileType == FileType.MODULE_INFO) {
             parser.setSource(createDummyModuleInfoCompilationUnit(sourceArray));
         } else {
             parser.setSource(sourceArray);
@@ -216,6 +213,20 @@ public class EntireFileCodeFormatter {
         };
     }
 
+    private void setHeader(TokenManager tokenManager, ASTNode astRoot) {
+        if (astRoot instanceof CompilationUnit unit) {
+            List<TypeDeclaration> types = unit.types();
+            ASTNode firstElement = !types.isEmpty()
+                ? types.get(0)
+                : unit.getModule() != null ? unit.getModule()
+                : unit.getPackage();
+            if (firstElement != null) {
+                int headerEndIndex = tokenManager.firstIndexIn(firstElement, -1);
+                tokenManager.setHeaderEndIndex(headerEndIndex);
+            }
+        }
+    }
+
     private void prepareSpaces(TokenManager tokenManager, ASTNode astRoot) {
         SpacePreparator spacePreparator = new SpacePreparator(tokenManager, this.options);
         astRoot.accept(spacePreparator);
@@ -242,8 +253,8 @@ public class EntireFileCodeFormatter {
         commentsPreparator.finishUp();
     }
 
-    private void prepareWraps(TokenManager tokenManager, ASTNode astRoot, int kind, int sourceLength) {
-        WrapPreparator wrapPreparator = new WrapPreparator(tokenManager, this.options, kind);
+    private void prepareWraps(TokenManager tokenManager, ASTNode astRoot, FileType fileType, int sourceLength) {
+        WrapPreparator wrapPreparator = new WrapPreparator(tokenManager, this.options, fileType.kind);
         astRoot.accept(wrapPreparator);
         final List<IRegion> regions = getRegions(tokenManager, sourceLength);
         wrapPreparator.finishUp(astRoot, regions);
