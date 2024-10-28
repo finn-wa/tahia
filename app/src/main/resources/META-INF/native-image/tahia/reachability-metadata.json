@@ -1,0 +1,45 @@
+{
+  "$schema": "https://www.graalvm.org/docs/reference-manual/native-image/assets/reachability-metadata-schema-v1.0.0.json",
+  "reflection": [
+    {
+      "type": "org.eclipse.core.internal.runtime.Messages",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.jdt.core.compiler.IProblem",
+      "allPublicFields": true
+    },
+    {
+      "type": "org.eclipse.jdt.internal.compiler.util.Messages",
+      "allDeclaredFields": true
+    }
+  ],
+  "resources": [
+    { "glob": "META-INF/services/java.lang.System$LoggerFinder" },
+    { "glob": "META-INF/services/java.util.spi.ResourceBundleControlProvider" },
+    { "glob": "org/eclipse/core/internal/runtime/messages.properties" },
+    { "glob": "org/eclipse/core/internal/runtime/messages*.properties" },
+    { "glob": "org/eclipse/jdt/internal/compiler/batch/messages.properties" },
+    { "glob": "org/eclipse/jdt/internal/compiler/batch/messages*.properties" },
+    { "glob": "org/eclipse/jdt/internal/compiler/messages.properties" },
+    { "glob": "org/eclipse/jdt/internal/compiler/messages*.properties" },
+    { "glob": "org/eclipse/jdt/internal/compiler/parser/parser*.rsc" },
+    { "glob": "org/eclipse/jdt/internal/compiler/parser/readableNames.props" },
+    { "glob": "org/eclipse/jdt/internal/compiler/parser/unicode13/part*.rsc" },
+    { "glob": "org/eclipse/jdt/internal/compiler/parser/unicode13/start*.rsc" },
+    { "glob": "org/eclipse/jdt/internal/compiler/problem/messages.properties" },
+    { "glob": "org/eclipse/jdt/internal/compiler/problem/messages*.properties" }
+  ],
+  "bundles": [
+    { "name": "org.eclipse.jdt.internal.compiler.batch.messages" },
+    { "name": "org.eclipse.jdt.internal.compiler.problem.messages" }
+  ],
+  "jni": [
+    {
+      "type": "java.lang.Boolean",
+      "methods": [
+        { "name": "getBoolean", "parameterTypes": ["java.lang.String"] }
+      ]
+    }
+  ]
+}
