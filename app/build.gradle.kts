@@ -1,5 +1,12 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
+import java.net.URI
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
+// import org.gradle.api.tasks.testing.logging.TestLogEvent
+// import java.io.File
+// import java.nio.file.Paths
 
 plugins {
     application
@@ -59,7 +66,46 @@ tasks.named<BuildNativeImageTask>("nativeCompile") {
     classpathJar.set(tasks.named<ShadowJar>("shadowJar").flatMap { it.archiveFile })
 }
 
-task<Exec>("benchmark") {
-    // https://github.com/sharkdp/hyperfine
-    commandLine("hyperfine")
+
+
+// bench stuff
+
+val testDataFileName = "commons-lang-3.17.0.zip";
+val testDataFile = layout.buildDirectory.file("downloads/$testDataFileName")
+val testDataDir = layout.buildDirectory.dir("testdata")
+
+val downloadTestDataTask = tasks.register("downloadTestData") {
+    val url = "https://github.com/apache/commons-lang/archive/refs/tags/rel/$testDataFileName"
+    outputs.file(testDataFile)
+
+    doLast {
+        val outputFile = testDataFile.get().asFile
+        if (!outputFile.exists()) {
+            println("Downloading $url")
+            Files.copy(
+                URI.create(url).toURL().openStream(),
+                outputFile.toPath(),
+                StandardCopyOption.REPLACE_EXISTING
+            )
+        }
+    }
 }
+
+val unzipTask = tasks.register<Copy>("unzipTestData") {
+    dependsOn(downloadTestDataTask)
+    from(zipTree(downloadTestDataTask.get().outputs.files.singleFile))
+    into(testDataDir)
+}
+
+task<Exec>("benchmark") {
+    val tahiaExecutable = file("./build/native/nativeCompile/tahia")
+
+    // https://github.com/sharkdp/hyperfine
+    commandLine(
+        "hyperfine",
+        // "--export-markdown=build/benchmark-results.md",
+        "--prepare='$rootDir/gradlew unzipTestData'",
+        "'$tahiaExecutable ${testDataDir.get()}'"
+    )
+}
+
