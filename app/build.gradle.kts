@@ -66,21 +66,21 @@ tasks.named<BuildNativeImageTask>("nativeCompile") {
     classpathJar.set(tasks.named<ShadowJar>("shadowJar").flatMap { it.archiveFile })
 }
 
-
-
 // bench stuff
 
-val testDataFileName = "commons-lang-3.17.0.zip";
-val testDataFile = layout.buildDirectory.file("downloads/$testDataFileName")
-val testDataDir = layout.buildDirectory.dir("testdata")
+val benchmarkDir = layout.buildDirectory.dir("benchmark")
+val testDataDir = layout.buildDirectory.dir("benchmark/testdata")
 
-val downloadTestDataTask = tasks.register("downloadTestData") {
-    val url = "https://github.com/apache/commons-lang/archive/refs/tags/rel/$testDataFileName"
+val downloadTestDataTask = tasks.register("benchmarkDownloadTestData") {
+    // Using Apache Commons Lang source code as a formatter test
+    val testDataFileName = "commons-lang-3.17.0.zip";
+    val testDataFile = benchmarkDir.get().file("downloads/$testDataFileName")
     outputs.file(testDataFile)
 
     doLast {
-        val outputFile = testDataFile.get().asFile
+        val outputFile = testDataFile.asFile
         if (!outputFile.exists()) {
+            val url = "https://github.com/apache/commons-lang/archive/refs/tags/rel/$testDataFileName"
             println("Downloading $url")
             Files.copy(
                 URI.create(url).toURL().openStream(),
@@ -91,21 +91,23 @@ val downloadTestDataTask = tasks.register("downloadTestData") {
     }
 }
 
-val unzipTask = tasks.register<Copy>("unzipTestData") {
+val unzipTestDataTask = tasks.register<Copy>("benchmarkUnzipTestData") {
     dependsOn(downloadTestDataTask)
     from(zipTree(downloadTestDataTask.get().outputs.files.singleFile))
     into(testDataDir)
 }
 
 task<Exec>("benchmark") {
-    val tahiaExecutable = file("./build/native/nativeCompile/tahia")
-
+    dependsOn(unzipTestDataTask)
     // https://github.com/sharkdp/hyperfine
     commandLine(
         "hyperfine",
-        // "--export-markdown=build/benchmark-results.md",
-        "--prepare='$rootDir/gradlew unzipTestData'",
-        "'$tahiaExecutable ${testDataDir.get()}'"
+        "--runs=5",
+        "--export-markdown=${benchmarkDir.get()}/benchmark-report.md",
+        "--show-output",
+        "--prepare",
+        "$rootDir/gradlew benchmarkUnzipTestData",
+        "${layout.buildDirectory.get()}/native/nativeCompile/tahia ${testDataDir.get()}",
     )
 }
 
