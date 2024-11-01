@@ -55,7 +55,6 @@ graalvmNative.binaries.all {
         // "--pgo-instrument",
         "--pgo=$iprofFile",
         "--exact-reachability-metadata",
-        // "--initialize-at-run-time=org.eclipse.jdt.internal.compiler.util.Messages",
         "--emit build-report",
         "-Dgraal.LogFile=$logFile",
     )
@@ -68,6 +67,7 @@ tasks.named<BuildNativeImageTask>("nativeCompile") {
 
 // bench stuff
 
+// TODO: better to use task outputs than shared variables
 val benchmarkDir = layout.buildDirectory.dir("benchmark")
 val testDataDir = layout.buildDirectory.dir("benchmark/testdata")
 
@@ -97,17 +97,36 @@ val unzipTestDataTask = tasks.register<Copy>("benchmarkUnzipTestData") {
     into(testDataDir)
 }
 
-task<Exec>("benchmark") {
+task<Exec>("benchmarkFormatCodebase") {
     dependsOn(unzipTestDataTask)
     // https://github.com/sharkdp/hyperfine
     commandLine(
         "hyperfine",
         "--runs=5",
-        "--export-markdown=${benchmarkDir.get()}/benchmark-report.md",
         "--show-output",
-        "--prepare",
-        "$rootDir/gradlew benchmarkUnzipTestData",
-        "${layout.buildDirectory.get()}/native/nativeCompile/tahia ${testDataDir.get()}",
+        "--export-markdown=${benchmarkDir.get()}/format-codebase-report.md",
+        "-L", "d", "true,false",
+        "--prepare", "$rootDir/gradlew benchmarkUnzipTestData",
+        "${layout.buildDirectory.get()}/native/nativeCompile/tahia --default={d} ${testDataDir.get()}",
+    )
+}
+
+val copySampleFileTask = tasks.register<Copy>("copySampleFile") {
+    from("./src/test/resources/tahia/formatter/SampleCode.txt")
+    into(testDataDir.get())
+}
+
+
+task<Exec>("benchmarkFormatFile") {
+    dependsOn(copySampleFileTask)
+    // https://github.com/sharkdp/hyperfine
+    commandLine(
+        "hyperfine",
+        "--show-output",
+        "--export-markdown=${benchmarkDir.get()}/format-code-report.md",
+        "-L", "d", "true,false",
+        "--prepare", "$rootDir/gradlew benchmarkUnzipTestData",
+        "${layout.buildDirectory.get()}/native/nativeCompile/tahia --default={d} ${testDataDir.get().file("SampleCode.txt")}",
     )
 }
 

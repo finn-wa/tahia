@@ -5,5 +5,6 @@ import java.util.logging.Level;
 public record TahiaOptions(
     String[] targetFiles,
     String configFile,
-    Level logLevel
+    Level logLevel,
+    boolean useDefaultFormatter
 ) {}

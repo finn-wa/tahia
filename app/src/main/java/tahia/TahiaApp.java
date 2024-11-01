@@ -36,7 +36,7 @@ public class TahiaApp {
         System.out.println(
             "Loaded config in " + (cfgLoaded - start) + "ms"
         );
-        final var formatter = new TahiaCodeFormatter(formatterConfig);
+        final var formatter = new TahiaCodeFormatter(formatterConfig, options.useDefaultFormatter());
         System.out.println(
             "Created formatter in " + (Instant.now().toEpochMilli() - cfgLoaded) + "ms"
         );

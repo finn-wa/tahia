@@ -31,9 +31,13 @@ public class FileWalker {
 
     private Stream<Path> findJavaFilesInPath(String filePath) {
         final var root = Path.of(filePath);
-        if (!root.toFile().exists()) {
+        final var rootFile = root.toFile();
+        if (!rootFile.exists()) {
             TahiaApp.LOGGER.warning("Could not find path " + filePath);
             return Stream.empty();
+        }
+        if (rootFile.isFile()) {
+            return Stream.of(root);
         }
         try {
             return Files.walk(root, FileVisitOption.FOLLOW_LINKS)

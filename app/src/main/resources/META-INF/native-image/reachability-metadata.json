@@ -11,11 +11,115 @@
     {
       "type": "org.eclipse.jdt.internal.compiler.util.Messages",
       "allDeclaredFields": true
+    },
+    { "type": "java.security.MessageDigestSpi" },
+    { "type": "java.security.interfaces.RSAPrivateKey" },
+    { "type": "java.security.interfaces.RSAPublicKey" },
+    {
+      "type": "sun.security.provider.SHA2$SHA256",
+      "methods": [{ "name": "<init>", "parameterTypes": [] }]
+    },
+    {
+      "type": "sun.security.provider.SHA5$SHA384",
+      "methods": [{ "name": "<init>", "parameterTypes": [] }]
+    },
+    {
+      "type": "sun.security.provider.X509Factory",
+      "methods": [{ "name": "<init>", "parameterTypes": [] }]
+    },
+    {
+      "type": "sun.security.rsa.RSAKeyFactory$Legacy",
+      "methods": [{ "name": "<init>", "parameterTypes": [] }]
+    },
+    {
+      "type": "sun.security.rsa.RSASignature$SHA256withRSA",
+      "methods": [{ "name": "<init>", "parameterTypes": [] }]
+    },
+    {
+      "type": "sun.security.rsa.RSASignature$SHA384withRSA",
+      "methods": [{ "name": "<init>", "parameterTypes": [] }]
+    },
+    {
+      "type": "sun.security.x509.AuthorityInfoAccessExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": ["java.lang.Boolean", "java.lang.Object"]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.AuthorityKeyIdentifierExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": ["java.lang.Boolean", "java.lang.Object"]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.BasicConstraintsExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": ["java.lang.Boolean", "java.lang.Object"]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.CRLDistributionPointsExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": ["java.lang.Boolean", "java.lang.Object"]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.CertificatePoliciesExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": ["java.lang.Boolean", "java.lang.Object"]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.ExtendedKeyUsageExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": ["java.lang.Boolean", "java.lang.Object"]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.KeyUsageExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": ["java.lang.Boolean", "java.lang.Object"]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.SubjectKeyIdentifierExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": ["java.lang.Boolean", "java.lang.Object"]
+        }
+      ]
     }
   ],
   "resources": [
     { "glob": "META-INF/services/java.lang.System$LoggerFinder" },
+    { "glob": "META-INF/services/java.time.zone.ZoneRulesProvider" },
     { "glob": "META-INF/services/java.util.spi.ResourceBundleControlProvider" },
+    {
+      "module": "java.base",
+      "glob": "jdk/internal/icu/impl/data/icudt74b/nfkc.nrm"
+    },
     { "glob": "org/eclipse/core/internal/runtime/messages.properties" },
     { "glob": "org/eclipse/core/internal/runtime/messages*.properties" },
     { "glob": "org/eclipse/jdt/internal/compiler/batch/messages.properties" },
@@ -30,7 +134,10 @@
     {
       "glob": "org/eclipse/jdt/internal/compiler/problem/messages*.properties"
     },
-    { "glob": "sun/util/logging/resources/logging*.properties" }
+    {
+      "module": "java.logging",
+      "glob": "sun/util/logging/resources/logging*.properties"
+    }
   ],
   "bundles": [
     { "name": "org.eclipse.jdt.internal.compiler.batch.messages" },

@@ -3,6 +3,7 @@ package tahia.formatter;
 import org.eclipse.jdt.internal.formatter.DefaultCodeFormatterOptions;
 import tahia.formatter.jdt.EntireFileCodeFormatter;
 import tahia.formatter.jdt.EntireFileCodeFormatter.FileType;
+import tahia.formatter.jdt.JdtCodeFormatter;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,13 +18,15 @@ import java.util.logging.Logger;
 public class TahiaCodeFormatter {
     private static final Logger LOGGER = Logger.getLogger(TahiaCodeFormatter.class.getName());
 
-    private final EntireFileCodeFormatter formatter;
+    private final ICodeFormatter formatter;
     private int numFilesFormatted = 0;
     private List<Path> skippedFiles = new ArrayList<>();
 
-    public TahiaCodeFormatter(Map<String, String> formatterConfig) {
+    public TahiaCodeFormatter(Map<String, String> formatterConfig, boolean useDefaultFormatter) {
         final var options = new DefaultCodeFormatterOptions(formatterConfig);
-        this.formatter = new EntireFileCodeFormatter(options);
+        this.formatter = useDefaultFormatter
+            ? new JdtCodeFormatter(options)
+            : new EntireFileCodeFormatter(options);
     }
 
     public TahiaCodeFormatter(EntireFileCodeFormatter formatter) {

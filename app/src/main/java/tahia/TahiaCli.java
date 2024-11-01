@@ -10,13 +10,14 @@ import org.apache.commons.cli.ParseException;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /** Provides the CLI for running TahiaApp. */
 public class TahiaCli {
     private static final String OPT_CONFIG = "c";
     private static final String OPT_HELP = "h";
     private static final String OPT_LOG_LEVEL = "l";
-
+    private static final Logger LOGGER = Logger.getLogger(TahiaCli.class.getName());
     private final CommandLineParser cliParser;
     private final HelpFormatter helpFormatter;
     private final Options cliOptions;
@@ -59,7 +60,6 @@ public class TahiaCli {
 
     TahiaOptions parseCliArgs(String[] args) throws ParseException {
         final var cmd = cliParser.parse(cliOptions, args);
-
         if (cmd.hasOption("help")) {
             printHelp();
             return null;
@@ -72,7 +72,18 @@ public class TahiaCli {
         if (targetFiles.length == 0) {
             throw new ParseException("Specify files or directories to format");
         }
-        return new TahiaOptions(targetFiles, configFilePath, logLevel);
+        final boolean useDefaultFormatter = "true".equals(cmd.getOptionValue("d"));
+        if (useDefaultFormatter) {
+            LOGGER.info("Using default formatter");
+        } else {
+            LOGGER.info("Using custom formatter");
+        }
+        return new TahiaOptions(
+            targetFiles,
+            configFilePath,
+            logLevel,
+            useDefaultFormatter
+        );
     }
 
     private Options getCliOptions() {
@@ -86,7 +97,8 @@ public class TahiaCli {
                 )
             )
             .addOption(new Option(OPT_LOG_LEVEL, "log-level", true, "Sets log level"))
-            .addOption(new Option(OPT_HELP, "help", false, "Displays help message"));
+            .addOption(new Option(OPT_HELP, "help", false, "Displays help message"))
+            .addOption(new Option("d", "default", true, "Use default formatter"));
     }
 
     private void printHelp() {

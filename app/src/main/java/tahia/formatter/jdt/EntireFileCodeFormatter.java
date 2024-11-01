@@ -33,6 +33,7 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.TextEdit;
+import tahia.formatter.ICodeFormatter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,7 +45,7 @@ import static org.eclipse.jdt.core.formatter.CodeFormatter.K_COMPILATION_UNIT;
 import static org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameEOF;
 import static org.eclipse.jdt.internal.compiler.parser.TerminalTokens.TokenNameNotAToken;
 
-public class EntireFileCodeFormatter {
+public class EntireFileCodeFormatter implements ICodeFormatter {
     public final boolean previewEnabled;
     private static final Logger LOGGER = Logger.getLogger(EntireFileCodeFormatter.class.getName());
     private final DefaultCodeFormatterOptions options;
