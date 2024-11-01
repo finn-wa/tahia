@@ -1,5 +1,4 @@
 {
-  "$schema": "https://www.graalvm.org/docs/reference-manual/native-image/assets/reachability-metadata-schema-v1.0.0.json",
   "reflection": [
     {
       "type": "org.eclipse.core.internal.runtime.Messages",
@@ -28,7 +27,10 @@
     { "glob": "org/eclipse/jdt/internal/compiler/parser/unicode13/part*.rsc" },
     { "glob": "org/eclipse/jdt/internal/compiler/parser/unicode13/start*.rsc" },
     { "glob": "org/eclipse/jdt/internal/compiler/problem/messages.properties" },
-    { "glob": "org/eclipse/jdt/internal/compiler/problem/messages*.properties" }
+    {
+      "glob": "org/eclipse/jdt/internal/compiler/problem/messages*.properties"
+    },
+    { "glob": "sun/util/logging/resources/logging*.properties" }
   ],
   "bundles": [
     { "name": "org.eclipse.jdt.internal.compiler.batch.messages" },
