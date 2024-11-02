@@ -1,4 +1,4 @@
-package tahia.formatter;
+package tahia.io;
 
 import tahia.TahiaApp;
 

@@ -1,4 +1,4 @@
-package tahia.formatter.jdt;
+package tahia.formatter;
 
 import java.util.Collections;
 import java.util.HashMap;

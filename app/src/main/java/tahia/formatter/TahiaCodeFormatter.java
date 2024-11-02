@@ -1,9 +1,12 @@
 package tahia.formatter;
 
-import org.eclipse.jdt.internal.formatter.DefaultCodeFormatterOptions;
-import tahia.formatter.jdt.EntireFileCodeFormatter;
-import tahia.formatter.jdt.EntireFileCodeFormatter.FileType;
-import tahia.formatter.jdt.JdtCodeFormatter;
+import jakarta.annotation.Nullable;
+import org.eclipse.jdt.internal.formatter.DefaultCodeFormatter;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
+import org.eclipse.text.edits.MalformedTreeException;
+import org.eclipse.text.edits.TextEdit;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,19 +21,16 @@ import java.util.logging.Logger;
 public class TahiaCodeFormatter {
     private static final Logger LOGGER = Logger.getLogger(TahiaCodeFormatter.class.getName());
 
-    private final ICodeFormatter formatter;
+    private final DefaultCodeFormatter jdtFormatter;
     private int numFilesFormatted = 0;
     private List<Path> skippedFiles = new ArrayList<>();
 
-    public TahiaCodeFormatter(Map<String, String> formatterConfig, boolean useDefaultFormatter) {
-        final var options = new DefaultCodeFormatterOptions(formatterConfig);
-        this.formatter = useDefaultFormatter
-            ? new JdtCodeFormatter(options)
-            : new EntireFileCodeFormatter(options);
+    public TahiaCodeFormatter(Map<String, String> formatterConfig) {
+        this.jdtFormatter = new DefaultCodeFormatter(formatterConfig);
     }
 
-    public TahiaCodeFormatter(EntireFileCodeFormatter formatter) {
-        this.formatter = formatter;
+    public TahiaCodeFormatter(DefaultCodeFormatter jdtFormatter) {
+        this.jdtFormatter = jdtFormatter;
     }
 
     /**
@@ -40,7 +40,7 @@ public class TahiaCodeFormatter {
         try {
             final String contents = Files.readString(path);
             final var fileType = FileType.fromFileName(path.getFileName().toString());
-            final String formatted = formatter.format(contents, fileType);
+            final String formatted = formatContent(contents, fileType.kind);
             if (formatted != null) {
                 Files.writeString(path, formatted);
                 numFilesFormatted++;
@@ -54,6 +54,23 @@ public class TahiaCodeFormatter {
             );
         }
         skippedFiles.add(path);
+    }
+
+    private @Nullable String formatContent(String source, int kind) {
+        final TextEdit edit = jdtFormatter.format(
+            kind,
+            source,
+            new IRegion[] { new Region(0, source.length()) },
+            0,
+            null
+        );
+        final var doc = new EditableDocumentStub(source);
+        try {
+            edit.apply(doc, TextEdit.NONE);
+        } catch (MalformedTreeException | BadLocationException e) {
+            throw new IllegalStateException(e);
+        }
+        return doc.get();
     }
 
     public int getNumFilesFormatted() {

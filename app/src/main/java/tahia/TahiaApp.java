@@ -1,8 +1,8 @@
 package tahia;
 
-import tahia.formatter.FileWalker;
-import tahia.formatter.FormatterConfigLoader;
 import tahia.formatter.TahiaCodeFormatter;
+import tahia.io.FileWalker;
+import tahia.io.FormatterConfigLoader;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -36,7 +36,7 @@ public class TahiaApp {
         System.out.println(
             "Loaded config in " + (cfgLoaded - start) + "ms"
         );
-        final var formatter = new TahiaCodeFormatter(formatterConfig, options.useDefaultFormatter());
+        final var formatter = new TahiaCodeFormatter(formatterConfig);
         System.out.println(
             "Created formatter in " + (Instant.now().toEpochMilli() - cfgLoaded) + "ms"
         );

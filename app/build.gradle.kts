@@ -105,13 +105,12 @@ task<Exec>("benchmarkFormatCodebase") {
         "--runs=5",
         "--show-output",
         "--export-markdown=${benchmarkDir.get()}/format-codebase-report.md",
-        "-L", "d", "true,false",
         "--prepare", "$rootDir/gradlew benchmarkUnzipTestData",
-        "${layout.buildDirectory.get()}/native/nativeCompile/tahia --default={d} ${testDataDir.get()}",
+        "${layout.buildDirectory.get()}/native/nativeCompile/tahia ${testDataDir.get()}",
     )
 }
 
-val copySampleFileTask = tasks.register<Copy>("copySampleFile") {
+val copySampleFileTask = tasks.register<Copy>("benchmarkCopySampleFile") {
     from("./src/test/resources/tahia/formatter/SampleCode.txt")
     into(testDataDir.get())
 }
@@ -124,9 +123,9 @@ task<Exec>("benchmarkFormatFile") {
         "hyperfine",
         "--show-output",
         "--export-markdown=${benchmarkDir.get()}/format-code-report.md",
-        "-L", "d", "true,false",
-        "--prepare", "$rootDir/gradlew benchmarkUnzipTestData",
-        "${layout.buildDirectory.get()}/native/nativeCompile/tahia --default={d} ${testDataDir.get().file("SampleCode.txt")}",
+        "--warmup", "1",
+        "--prepare", "$rootDir/gradlew benchmarkCopySampleFile",
+        "${layout.buildDirectory.get()}/native/nativeCompile/tahia ${testDataDir.get().file("SampleCode.txt")}",
     )
 }
 

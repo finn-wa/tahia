@@ -1,4 +1,4 @@
-package tahia.formatter.jdt;
+package tahia.formatter;
 
 import org.eclipse.jface.text.*;
 

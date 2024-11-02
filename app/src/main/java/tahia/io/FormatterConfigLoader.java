@@ -1,8 +1,8 @@
-package tahia.formatter;
+package tahia.io;
 
 import jakarta.annotation.Nullable;
 import org.eclipse.jdt.core.JavaCore;
-import tahia.formatter.jdt.DefaultFormatterConfig;
+import tahia.formatter.DefaultFormatterConfig;
 
 import java.io.BufferedInputStream;
 import java.io.File;

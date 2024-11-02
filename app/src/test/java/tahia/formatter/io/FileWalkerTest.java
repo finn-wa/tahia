@@ -1,9 +1,10 @@
-package tahia.formatter;
+package tahia.formatter.io;
 
 import net.lingala.zip4j.ZipFile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import tahia.io.FileWalker;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

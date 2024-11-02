@@ -72,17 +72,10 @@ public class TahiaCli {
         if (targetFiles.length == 0) {
             throw new ParseException("Specify files or directories to format");
         }
-        final boolean useDefaultFormatter = "true".equals(cmd.getOptionValue("d"));
-        if (useDefaultFormatter) {
-            LOGGER.info("Using default formatter");
-        } else {
-            LOGGER.info("Using custom formatter");
-        }
         return new TahiaOptions(
             targetFiles,
             configFilePath,
-            logLevel,
-            useDefaultFormatter
+            logLevel
         );
     }
 
@@ -97,8 +90,7 @@ public class TahiaCli {
                 )
             )
             .addOption(new Option(OPT_LOG_LEVEL, "log-level", true, "Sets log level"))
-            .addOption(new Option(OPT_HELP, "help", false, "Displays help message"))
-            .addOption(new Option("d", "default", true, "Use default formatter"));
+            .addOption(new Option(OPT_HELP, "help", false, "Displays help message"));
     }
 
     private void printHelp() {
