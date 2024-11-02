@@ -4,10 +4,6 @@ import java.net.URI
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
-// import org.gradle.api.tasks.testing.logging.TestLogEvent
-// import java.io.File
-// import java.nio.file.Paths
-
 plugins {
     application
     // https://github.com/GradleUp/shadow/releases
@@ -39,9 +35,11 @@ tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 
+val version = "0.0.2"
+
 // https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html
 graalvmNative.binaries.all {
-    imageName.set("tahia")
+    imageName.set("tahia-v$version")
     useFatJar.set(true)
     debug.set(false)
     verbose.set(false)
@@ -50,7 +48,7 @@ graalvmNative.binaries.all {
     val logFile = file("./build/native/nativeCompile/build.log")
     buildArgs.addAll(
         // https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/#optimization-levels
-        "-Ob",
+        "-O2",
         "--gc=G1",
         // "--pgo-instrument",
         "--pgo=$iprofFile",
@@ -99,6 +97,7 @@ val unzipTestDataTask = tasks.register<Copy>("benchmarkUnzipTestData") {
 
 task<Exec>("benchmarkFormatCodebase") {
     dependsOn(unzipTestDataTask)
+    val tahia = "${layout.buildDirectory.get()}/native/nativeCompile/tahia"
     // https://github.com/sharkdp/hyperfine
     commandLine(
         "hyperfine",
@@ -106,7 +105,8 @@ task<Exec>("benchmarkFormatCodebase") {
         "--show-output",
         "--export-markdown=${benchmarkDir.get()}/format-codebase-report.md",
         "--prepare", "$rootDir/gradlew benchmarkUnzipTestData",
-        "${layout.buildDirectory.get()}/native/nativeCompile/tahia ${testDataDir.get()}",
+        "-n", "v0.0.1", "$tahia ${testDataDir.get()}",
+        "-n", "v0.0.2", "$tahia-v0.0.2 ${testDataDir.get()}",
     )
 }
 
@@ -114,7 +114,6 @@ val copySampleFileTask = tasks.register<Copy>("benchmarkCopySampleFile") {
     from("./src/test/resources/tahia/formatter/SampleCode.txt")
     into(testDataDir.get())
 }
-
 
 task<Exec>("benchmarkFormatFile") {
     dependsOn(copySampleFileTask)

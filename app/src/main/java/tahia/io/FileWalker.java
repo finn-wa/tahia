@@ -13,8 +13,6 @@ import java.util.stream.Stream;
 /** Finds Java files to be formatted. */
 public class FileWalker {
 
-    private static final String JAVA_EXTENSION = ".java";
-
     /**
      * Recursively searches for all Java files in the specified directories or file paths.
      * 
@@ -41,7 +39,7 @@ public class FileWalker {
         }
         try {
             return Files.walk(root, FileVisitOption.FOLLOW_LINKS)
-                .filter(path -> Files.isRegularFile(path) && path.toString().endsWith(JAVA_EXTENSION));
+                .filter(path -> Files.isRegularFile(path) && path.toString().endsWith(".java"));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

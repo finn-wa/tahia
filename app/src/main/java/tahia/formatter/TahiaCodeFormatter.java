@@ -47,16 +47,17 @@ public class TahiaCodeFormatter {
                 return;
             }
             LOGGER.warning("Unable to format " + path.toString() + " - skipping file");
-        } catch (IOException e) {
+        } catch (IOException | MalformedTreeException | BadLocationException e) {
             LOGGER.warning(
-                () -> "Caught IOEXception while formatting " + path.toString() + ": " + e
+                () -> "Caught " + e.getClass().getName() + " while formatting " + path.toString() + ": " + e
                     .getLocalizedMessage()
             );
         }
         skippedFiles.add(path);
     }
 
-    private @Nullable String formatContent(String source, int kind) {
+    private @Nullable String formatContent(String source, int kind)
+        throws MalformedTreeException, BadLocationException {
         final TextEdit edit = jdtFormatter.format(
             kind,
             source,
@@ -65,11 +66,7 @@ public class TahiaCodeFormatter {
             null
         );
         final var doc = new EditableDocumentStub(source);
-        try {
-            edit.apply(doc, TextEdit.NONE);
-        } catch (MalformedTreeException | BadLocationException e) {
-            throw new IllegalStateException(e);
-        }
+        edit.apply(doc, TextEdit.NONE);
         return doc.get();
     }
 
