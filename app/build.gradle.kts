@@ -35,7 +35,7 @@ tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 
-val version = "0.0.2"
+val version = "0.0.3"
 
 // https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html
 graalvmNative.binaries.all {
@@ -101,12 +101,13 @@ task<Exec>("benchmarkFormatCodebase") {
     // https://github.com/sharkdp/hyperfine
     commandLine(
         "hyperfine",
+        "--warmup=1",
         "--runs=5",
         "--show-output",
         "--export-markdown=${benchmarkDir.get()}/format-codebase-report.md",
         "--prepare", "$rootDir/gradlew benchmarkUnzipTestData",
         "-n", "v0.0.1", "$tahia ${testDataDir.get()}",
-        "-n", "v0.0.2", "$tahia-v0.0.2 ${testDataDir.get()}",
+        "-n", "v0.0.3", "$tahia-v0.0.3 ${testDataDir.get()}",
     )
 }
 
