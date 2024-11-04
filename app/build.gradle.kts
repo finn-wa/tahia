@@ -35,7 +35,7 @@ tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 
-val version = "0.0.3"
+val version = "0.0.4"
 
 // https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html
 graalvmNative.binaries.all {
@@ -106,8 +106,8 @@ task<Exec>("benchmarkFormatCodebase") {
         "--show-output",
         "--export-markdown=${benchmarkDir.get()}/format-codebase-report.md",
         "--prepare", "$rootDir/gradlew benchmarkUnzipTestData",
-        "-n", "v0.0.1", "$tahia ${testDataDir.get()}",
         "-n", "v0.0.3", "$tahia-v0.0.3 ${testDataDir.get()}",
+        "-n", "v0.0.4", "$tahia-v0.0.4 ${testDataDir.get()}",
     )
 }
 
@@ -122,10 +122,10 @@ task<Exec>("benchmarkFormatFile") {
     commandLine(
         "hyperfine",
         "--show-output",
-        "--export-markdown=${benchmarkDir.get()}/format-code-report.md",
         "--warmup", "1",
         "--prepare", "$rootDir/gradlew benchmarkCopySampleFile",
         "${layout.buildDirectory.get()}/native/nativeCompile/tahia ${testDataDir.get().file("SampleCode.txt")}",
+        "${layout.buildDirectory.get()}/native/nativeCompile/tahia-v0.0.4 ${testDataDir.get().file("SampleCode.txt")}",
     )
 }
 

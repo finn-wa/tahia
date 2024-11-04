@@ -7,9 +7,6 @@ import tahia.io.FormatterConfigLoader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -35,26 +32,13 @@ public class TahiaApp {
     public void run(TahiaOptions options) throws IOException {
         final long start = Instant.now().toEpochMilli();
         final var formatterConfig = formatterConfigLoader.getConfig(options.configFile());
-        final long cfgLoaded = Instant.now().toEpochMilli();
-        System.out.println(
-            "Loaded config in " + (cfgLoaded - start) + "ms"
-        );
-
-        final int numberOfThreads = Runtime.getRuntime().availableProcessors();
-        final ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
+        LOGGER.finer("Loaded config");
         final var formatter = new ThreadSafeCodeFormatter(formatterConfig);
-        System.out.println(
-            "Created formatter in " + (Instant.now().toEpochMilli() - cfgLoaded) + "ms"
-        );
+        LOGGER.fine("Created formatter");
+
         fileWalker.findJavaFiles(options.targetFiles())
-            .forEach(path -> executorService.submit(() -> formatter.formatFile(path)));
-        executorService.shutdown();
-        try {
-            executorService.awaitTermination(1, TimeUnit.DAYS);
-        } catch (InterruptedException e) {
-            LOGGER.severe("Interrupted!");
-            e.printStackTrace();
-        }
+            .parallel()
+            .forEach(formatter::formatFile);
 
         final long end = Instant.now().toEpochMilli();
         System.out.println(

@@ -1,12 +1,8 @@
 # tahia - java formatter
 
-A Java formatter without the JVM startup time
-
-_(It's just the Eclipse formatter built with GraalVM Native Image)_
-
-Designed for saving time in commit hooks or CI.
+1. _(Maori)_ - to clear away, to sweep
+2. A Java formatter without the JVM startup time
 
 ---
 
-**tahia** _(Maori)_ - to clear away, to sweep
-
+Tahia compiles the Eclipse JDT formatter into a binary executable with useful CLI options. It's fast to start up, which is ideal for saving time in commit hooks and CLI scripts.

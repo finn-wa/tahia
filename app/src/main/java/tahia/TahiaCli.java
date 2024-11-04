@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 /** Provides the CLI for running TahiaApp. */
 public class TahiaCli {
-    private static final String OPT_CONFIG = "c";
+    private static final String OPT_PREFS = "p";
     private static final String OPT_HELP = "h";
     private static final String OPT_LOG_LEVEL = "l";
     private static final Logger LOGGER = Logger.getLogger(TahiaCli.class.getName());
@@ -83,8 +83,8 @@ public class TahiaCli {
         return new Options()
             .addOption(
                 new Option(
-                    OPT_CONFIG,
-                    "config",
+                    OPT_PREFS,
+                    "prefs",
                     false,
                     "Use the formatting style from the specified properties file."
                 )
