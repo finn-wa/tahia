@@ -5,10 +5,17 @@ permissions:
   pull-requests: write
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build Native Image on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
     steps:
-      - uses: actions/checkout@v4
-      - uses: graalvm/setup-graalvm@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1
         with:
           java-version: '23.0.2'
           distribution: 'graalvm'
@@ -16,11 +23,19 @@ jobs:
           cache: 'gradle'
           native-image-job-reports: true
           native-image-pr-reports: true
+
       - name: Print environment info
         run: |
           echo "GRAALVM_HOME: $GRAALVM_HOME"
           echo "JAVA_HOME: $JAVA_HOME"
           java --version
           native-image --version
-      - name: Compile Native Image
+
+      - name: Compile native image
         run: ./gradlew nativeCompile
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: tahia-${{ matrix.os }}
+          path: build/native/nativeCompile/tahia*

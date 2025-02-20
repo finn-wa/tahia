@@ -45,7 +45,7 @@ graalvmNative.binaries.all {
     verbose.set(false)
 
     val iprofFile = file("./graal/default.iprof")
-    val logFile = file("./build/native/nativeCompile/build.log")
+    // val logFile = file("./build/native/nativeCompile/build.log")
     buildArgs.addAll(
         // https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/#optimization-levels
         "-O2",
@@ -53,8 +53,8 @@ graalvmNative.binaries.all {
         // "--pgo-instrument",
         "--pgo=$iprofFile",
         "--exact-reachability-metadata",
-        "--emit build-report",
-        "-Dgraal.LogFile=$logFile",
+        // "--emit build-report",
+        // "-Dgraal.LogFile=$logFile",
     )
 }
 
