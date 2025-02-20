@@ -38,4 +38,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tahia-${{ matrix.os }}
-          path: build/native/nativeCompile/tahia*
+          path: app/build/native/nativeCompile/tahia*
