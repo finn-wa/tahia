@@ -1,6 +1,6 @@
 # tahia - java formatter
 
-1. _(Maori)_ - to clear away, to sweep
+1. _(Māori)_ - to clear away, to sweep
 2. A Java formatter without the JVM startup time
 
 ---
