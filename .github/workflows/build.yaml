@@ -16,7 +16,6 @@ jobs:
           cache: 'gradle'
           native-image-job-reports: true
           native-image-pr-reports: true
-          native-image-enable-sbom: true
       - name: Print environment info
         run: |
           echo "GRAALVM_HOME: $GRAALVM_HOME"
@@ -24,4 +23,4 @@ jobs:
           java --version
           native-image --version
       - name: Compile Native Image
-        run: gradlew nativeCompile
+        run: ./gradlew nativeCompile
