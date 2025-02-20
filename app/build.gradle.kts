@@ -36,10 +36,11 @@ tasks.named<Test>("test") {
 }
 
 val version = "0.0.6"
+val buildPlatform = System.getenv("BUILD_PLATFORM") ?: "local"
 
 // https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html
 graalvmNative.binaries.all {
-    imageName.set("tahia-v$version")
+    imageName.set("tahia-v$version-$buildPlatform")
     useFatJar.set(true)
     debug.set(false)
     verbose.set(false)
