@@ -113,7 +113,7 @@ public class DefaultFormatterConfig {
         config.put("org.eclipse.jdt.core.formatter.comment.insert_new_line_before_root_tags", "insert");
         config.put("org.eclipse.jdt.core.formatter.comment.insert_new_line_between_different_tags", "do not insert");
         config.put("org.eclipse.jdt.core.formatter.comment.insert_new_line_for_parameter", "do not insert");
-        config.put("org.eclipse.jdt.core.formatter.comment.line_length", "100");
+        config.put("org.eclipse.jdt.core.formatter.comment.line_length", "120");
         config.put("org.eclipse.jdt.core.formatter.comment.new_lines_at_block_boundaries", "true");
         config.put("org.eclipse.jdt.core.formatter.comment.new_lines_at_javadoc_boundaries", "true");
         config.put(

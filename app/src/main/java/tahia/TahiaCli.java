@@ -10,14 +10,13 @@ import org.apache.commons.cli.ParseException;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /** Provides the CLI for running TahiaApp. */
 public class TahiaCli {
+    private static final String OPT_INPUT = "i";
     private static final String OPT_PREFS = "p";
     private static final String OPT_HELP = "h";
     private static final String OPT_LOG_LEVEL = "l";
-    private static final Logger LOGGER = Logger.getLogger(TahiaCli.class.getName());
     private final CommandLineParser cliParser;
     private final HelpFormatter helpFormatter;
     private final Options cliOptions;
@@ -65,10 +64,10 @@ public class TahiaCli {
             return null;
         }
 
-        final String configFilePath = cmd.getOptionValue("configFile");
+        final String configFilePath = cmd.getOptionValue(OPT_PREFS);
         final Level logLevel = Level.parse(cmd.getOptionValue(OPT_LOG_LEVEL, Level.INFO.getName()));
         // Get the remaining arguments (files and directories)
-        final String[] targetFiles = cmd.getArgs();
+        final String[] targetFiles = cmd.getOptionValues(OPT_INPUT);
         if (targetFiles.length == 0) {
             throw new ParseException("Specify files or directories to format");
         }
@@ -82,10 +81,18 @@ public class TahiaCli {
     private Options getCliOptions() {
         return new Options()
             .addOption(
+                Option.builder(OPT_INPUT)
+                    .longOpt("input")
+                    .hasArgs()
+                    .desc("Paths to files & directories to format")
+                    .required()
+                    .build()
+            )
+            .addOption(
                 new Option(
                     OPT_PREFS,
                     "prefs",
-                    false,
+                    true,
                     "Use the formatting style from the specified properties file."
                 )
             )

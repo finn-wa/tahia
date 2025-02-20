@@ -21,19 +21,26 @@ public class FormatterConfigLoader {
 
     public Map<String, String> getConfig(@Nullable String configFile) throws FileNotFoundException, IOException {
         if (configFile == null) {
+            LOGGER.fine("Using default formatter config");
             return DefaultFormatterConfig.CONFIG;
         }
+        LOGGER.fine("Loading formatter config from " + configFile);
         return readConfig(configFile);
     }
 
     /**
-     * Return a Java Properties file representing the options that are in the specified
-     * configuration file.
+     * Return a Java Properties file representing the options that are in the specified configuration file.
      * 
      * @throws IOException
      * @throws FileNotFoundException
      */
     private Map<String, String> readConfig(String filename) throws FileNotFoundException, IOException {
+        if (filename.trim().toLowerCase().endsWith("xml")) {
+            // We could parse the file using JAXB. Or check how the default Eclipse formatter implementation does it.
+            throw new IllegalArgumentException(
+                "XML files are not yet supported - please put the settings in a Java properties file"
+            );
+        }
         LOGGER.fine("Loading formatter configuration");
         File configFile = new File(filename);
         if (!configFile.exists()) {
