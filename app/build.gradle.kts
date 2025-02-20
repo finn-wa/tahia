@@ -35,7 +35,7 @@ tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 
-val version = "0.0.4"
+val version = "0.0.5"
 
 // https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html
 graalvmNative.binaries.all {
