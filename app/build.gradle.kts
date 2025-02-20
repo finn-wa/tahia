@@ -49,7 +49,7 @@ graalvmNative.binaries.all {
     buildArgs.addAll(
         // https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/#optimization-levels
         "-O2",
-        "--gc=G1",
+        // "--gc=G1", // Only available on Linux
         // "--pgo-instrument",
         "--pgo=$iprofFile",
         "--exact-reachability-metadata",
